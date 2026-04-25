@@ -1,57 +1,79 @@
 [
   {
     "id": "p-tidsbegrænset-1",
-    "title": "Parkering – Maks. 2 timer",
-    "description": "Parkering tilladt for alle i maks. 2 timer på hverdage 8–18.",
+    "title": "Parkering – Maks. 2 timer (hverdage 8–18)",
+    "description": "Parkering tilladt for alle i maks. 2 timer på hverdage kl. 8–18. Uden for dette tidsrum er parkering fri.",
     "tags": ["tidsbegrænset", "alle", "hverdage"],
+    "baseStatus": "free",
+    "baseNote": "Fri parkering",
     "rules": [
       "Parkering tilladt for alle",
       "Maksimal parkeringstid: 2 timer",
-      "Gælder mandag–fredag kl. 8:00–18:00"
+      "Gælder mandag–fredag kl. 8:00–18:00",
+      "Uden for tidsrummet: fri parkering"
+    ],
+    "timeRules": [
+      { "type": "limited", "windows": [{"from": 8, "to": 18}], "days": "weekday", "maxHours": 2, "note": "Maks. 2 timer" }
     ],
     "svgPreview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 268'><rect width='200' height='200' rx='10' fill='#1A3A8F'/><rect x='6' y='6' width='188' height='188' rx='7' fill='none' stroke='white' stroke-width='3'/><text x='100' y='138' font-family='Arial Black,Arial,sans-serif' font-size='110' font-weight='900' fill='white' text-anchor='middle'>P</text><rect x='0' y='204' width='200' height='64' rx='6' fill='white'/><rect x='3' y='207' width='194' height='58' rx='4' fill='none' stroke='#1A3A8F' stroke-width='3'/><text x='100' y='228' font-family='Arial,Helvetica,sans-serif' font-size='16' font-weight='bold' fill='#111' text-anchor='middle'>2 timer</text><text x='100' y='250' font-family='Arial,Helvetica,sans-serif' font-size='16' font-weight='bold' fill='#111' text-anchor='middle'>8–18</text></svg>"
   },
   {
     "id": "el-kun-elbiler",
-    "title": "El-ladeplads – Kun elbiler",
-    "description": "Kun elektriske køretøjer og plug-in hybrider må parkere. Krav om tilslutning til ladestander.",
-    "tags": ["el-bil", "ladeplads", "forbudt-for-andre"],
+    "title": "El-ladeplads – Kun elbiler (hele døgnet)",
+    "description": "Kun elektriske køretøjer og plug-in hybrider må parkere hele døgnet. Krav om tilslutning til ladestander.",
+    "tags": ["el-bil", "ladeplads"],
+    "baseStatus": "ev-only",
+    "baseNote": "Kun elbiler under opladning",
     "rules": [
       "Kun for elkøretøjer og plug-in hybrider",
       "Krav om tilslutning til ladestander",
       "Gælder hele døgnet"
     ],
+    "timeRules": [
+      { "type": "ev-only", "windows": [], "days": "all", "note": "Kun elbiler under opladning" }
+    ],
     "svgPreview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><rect width='200' height='200' rx='10' fill='#1A3A8F'/><rect x='6' y='6' width='188' height='188' rx='7' fill='none' stroke='white' stroke-width='3'/><text x='72' y='130' font-family='Arial Black,Arial,sans-serif' font-size='100' font-weight='900' fill='white' text-anchor='middle'>P</text><g transform='translate(148,72) scale(1.4)'><rect x='-8' y='-14' width='16' height='20' rx='3' fill='white'/><rect x='-5' y='-20' width='4' height='8' rx='1' fill='white'/><rect x='1' y='-20' width='4' height='8' rx='1' fill='white'/><path d='M0,6 C0,12 8,12 8,18 C8,24 0,24 0,30 C0,36 8,36 8,42' fill='none' stroke='white' stroke-width='3' stroke-linecap='round'/></g></svg>"
   },
   {
-    "id": "el-tidsbegrænset",
-    "title": "El-ladeplads – 3 timer 8–19",
-    "description": "Alle må parkere, men krav om opladning i 3 timer mellem 8 og 19. Uden for dette tidsrum gælder betalingsparkering.",
-    "tags": ["el-bil", "ladeplads", "tidsbegrænset", "alle"],
+    "id": "el-ladeplads-betaling",
+    "title": "El-ladeplads – 3 timer gratis / betalingszone øvrig tid",
+    "description": "Elbiler kan lade gratis i maks. 3 timer kl. 8–19. Uden for dette tidsrum er området betalingszone for alle.",
+    "tags": ["el-bil", "tidsbegrænset", "betaling"],
+    "baseStatus": "paid",
+    "baseNote": "P-betalingszone",
     "rules": [
-      "Krav om opladning af elkøretøjer",
-      "Maks. 3 timer kl. 8–19",
-      "Øvrige tid: P-betalingszone"
+      "Kun for elbiler under opladning kl. 8–19",
+      "Gratis parkering i maks. 3 timer kl. 8–19",
+      "Øvrig tid: P-betalingszone gælder for alle"
     ],
-    "svgPreview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 290'><rect width='200' height='200' rx='10' fill='#1A3A8F'/><rect x='6' y='6' width='188' height='188' rx='7' fill='none' stroke='white' stroke-width='3'/><text x='72' y='130' font-family='Arial Black,Arial,sans-serif' font-size='100' font-weight='900' fill='white' text-anchor='middle'>P</text><g transform='translate(148,72) scale(1.4)'><rect x='-8' y='-14' width='16' height='20' rx='3' fill='white'/><rect x='-5' y='-20' width='4' height='8' rx='1' fill='white'/><rect x='1' y='-20' width='4' height='8' rx='1' fill='white'/><path d='M0,6 C0,12 8,12 8,18 C8,24 0,24 0,30 C0,36 8,36 8,42' fill='none' stroke='white' stroke-width='3' stroke-linecap='round'/></g><rect x='0' y='204' width='200' height='86' rx='6' fill='white'/><rect x='3' y='207' width='194' height='80' rx='4' fill='none' stroke='#1A3A8F' stroke-width='3'/><text x='100' y='228' font-family='Arial,Helvetica,sans-serif' font-size='16' font-weight='bold' fill='#111' text-anchor='middle'>Kun opladning af elkøretøjer</text><text x='100' y='250' font-family='Arial,Helvetica,sans-serif' font-size='16' font-weight='bold' fill='#111' text-anchor='middle'>3 timer</text><text x='100' y='272' font-family='Arial,Helvetica,sans-serif' font-size='16' font-weight='bold' fill='#111' text-anchor='middle'>8–19</text></svg>"
+    "timeRules": [
+      { "type": "ev-only", "windows": [{"from": 8, "to": 19}], "days": "all", "maxHours": 3, "note": "Maks. 3 timer opladning" }
+    ],
+    "svgPreview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><rect width='200' height='200' rx='10' fill='#1A3A8F'/><rect x='6' y='6' width='188' height='188' rx='7' fill='none' stroke='white' stroke-width='3'/><text x='72' y='130' font-family='Arial Black,Arial,sans-serif' font-size='100' font-weight='900' fill='white' text-anchor='middle'>P</text><g transform='translate(148,72) scale(1.4)'><rect x='-8' y='-14' width='16' height='20' rx='3' fill='white'/><rect x='-5' y='-20' width='4' height='8' rx='1' fill='white'/><rect x='1' y='-20' width='4' height='8' rx='1' fill='white'/><path d='M0,6 C0,12 8,12 8,18 C8,24 0,24 0,30' fill='none' stroke='white' stroke-width='3' stroke-linecap='round'/></g></svg>"
   },
   {
     "id": "beboerparkering",
-    "title": "Beboerparkering",
-    "description": "Reserveret til beboere med gyldig beboerlicens. Andre må ikke parkere.",
+    "title": "Beboerparkering (hverdage 8–18)",
+    "description": "Reserveret til beboere med gyldig licens på hverdage 8–18. Uden for dette tidsrum er parkering fri for alle.",
     "tags": ["beboere", "tidsbegrænset", "hverdage"],
+    "baseStatus": "free",
+    "baseNote": "Fri parkering",
     "rules": [
-      "Kun for beboere med gyldig licens",
-      "Gælder mandag–fredag kl. 8:00–18:00",
-      "Andre må ikke parkere i perioden"
+      "Kun for beboere med gyldig licens kl. 8–18 på hverdage",
+      "Uden for tidsrummet: fri parkering for alle"
+    ],
+    "timeRules": [
+      { "type": "limited", "windows": [{"from": 8, "to": 18}], "days": "weekday", "note": "Kun beboere med licens" }
     ],
     "svgPreview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><rect width='200' height='200' rx='10' fill='#1A3A8F'/><rect x='6' y='6' width='188' height='188' rx='7' fill='none' stroke='white' stroke-width='3'/><text x='85' y='130' font-family='Arial Black,Arial,sans-serif' font-size='90' font-weight='900' fill='white' text-anchor='middle'>P</text><rect x='130' y='50' width='46' height='46' rx='6' fill='white'/><text x='153' y='85' font-family='Arial Black,Arial,sans-serif' font-size='36' font-weight='900' fill='#1A3A8F' text-anchor='middle'>B</text></svg>"
   },
   {
     "id": "komplekst-eksempel",
-    "title": "Komplekst skilt – standsning/parkering",
-    "description": "Eksempel på et komplekst skilt som det på billedet. Standsningsforbud i myldretiden, parkeringsforbud uden for myldretid, og fri 2-timers parkering bagud fra skiltet.",
+    "title": "Kombinationsskilt – standsning/parkering",
+    "description": "Standsningsforbud i myldretiden fremad, parkeringsforbud midt på dagen, fri parkering bagud med p-skive. Fra foto af rigtigt dansk skilt.",
     "tags": ["tidsbegrænset", "forbudt", "hverdage"],
+    "baseStatus": "free",
+    "baseNote": "Fri parkering",
     "rules": [
       "Fremad: Standsningsforbud 7–9 og 15–18 (hverdag)",
       "Fremad: Parkeringsforbud 9–15 (hverdag), 7–13 (lørdag)",
@@ -59,51 +81,45 @@
       "Bagud: Parkering tilladt 9–15 (hverdag), 9–13 (lørdag) – maks. 2 timer med p-skive"
     ],
     "timeRules": [
-      { "type": "forbidden",   "windows": [{"from":7,"to":9},{"from":15,"to":18}], "days": "weekday", "note": "Standsningsforbud fremad" },
-      { "type": "no-parking",  "windows": [{"from":9,"to":15}],                    "days": "weekday", "note": "Parkeringsforbud fremad (standsning OK)" },
-      { "type": "no-parking",  "windows": [{"from":7,"to":13}],                    "days": "saturday","note": "Parkeringsforbud fremad (lørdag)" },
-      { "type": "forbidden",   "windows": [{"from":15,"to":18}],                   "days": "weekday", "note": "Standsningsforbud bagud" },
-      { "type": "limited",     "windows": [{"from":9,"to":15}],                    "days": "weekday", "maxHours": 2, "note": "2 timer m. p-skive bagud" },
-      { "type": "limited",     "windows": [{"from":9,"to":13}],                    "days": "saturday","maxHours": 2, "note": "2 timer m. p-skive bagud (lørdag)" }
+      { "type": "forbidden",   "windows": [{"from":7,"to":9},{"from":15,"to":18}], "days": "weekday",  "note": "Standsningsforbud fremad" },
+      { "type": "no-parking",  "windows": [{"from":9,"to":15}],                    "days": "weekday",  "note": "Parkeringsforbud fremad (standsning OK)" },
+      { "type": "no-parking",  "windows": [{"from":7,"to":13}],                    "days": "saturday", "note": "Parkeringsforbud fremad (lørdag)" },
+      { "type": "forbidden",   "windows": [{"from":15,"to":18}],                   "days": "weekday",  "note": "Standsningsforbud bagud" },
+      { "type": "limited",     "windows": [{"from":9,"to":15}],                    "days": "weekday",  "maxHours": 2, "note": "2 timer m. p-skive bagud" },
+      { "type": "limited",     "windows": [{"from":9,"to":13}],                    "days": "saturday", "maxHours": 2, "note": "2 timer m. p-skive bagud (lørdag)" }
     ],
     "svgPreview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><rect width='200' height='200' rx='10' fill='#1A3A8F'/><circle cx='100' cy='100' r='72' fill='#1A3A8F'/><circle cx='100' cy='100' r='72' fill='none' stroke='#CC0000' stroke-width='12'/><line x1='49' y1='49' x2='151' y2='151' stroke='#CC0000' stroke-width='12' stroke-linecap='round'/><line x1='49' y1='151' x2='151' y2='49' stroke='#CC0000' stroke-width='12' stroke-linecap='round'/></svg>"
   },
   {
-    "id": "el-ladeplads-betaling",
-    "title": "El-ladeplads – 3 timer / betalingszone",
-    "description": "Elbiler kan lade gratis i 3 timer kl. 8–19. Uden for dette tidsrum er området betalingszone.",
-    "tags": ["el-bil", "tidsbegrænset", "betaling"],
+    "id": "parkering-forbudt",
+    "title": "Parkering forbudt (hele døgnet)",
+    "description": "Parkering er forbudt hele døgnet. Standsning er dog tilladt i kortere tid (maks. 3 minutter).",
+    "tags": ["forbudt", "alle"],
+    "baseStatus": "no-parking",
+    "baseNote": "Parkering forbudt",
     "rules": [
-      "Kun for elbiler under opladning",
-      "Gratis parkering i maks. 3 timer kl. 8–19",
-      "Øvrig tid: P-betalingszone gælder"
+      "Parkering forbudt hele døgnet",
+      "Standsning tilladt i maks. 3 min"
     ],
     "timeRules": [
-      { "type": "ev-only", "windows": [{"from": 8, "to": 19}], "days": "all", "maxHours": 3, "note": "Maks. 3 timer opladning" },
-      { "type": "paid",    "windows": [{"from": 19, "to": 24}, {"from": 0, "to": 8}], "days": "all", "note": "P-betalingszone" }
-    ],
-    "svgPreview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><rect width='200' height='200' rx='10' fill='#1A3A8F'/><rect x='6' y='6' width='188' height='188' rx='7' fill='none' stroke='white' stroke-width='3'/><text x='72' y='130' font-family='Arial Black,Arial,sans-serif' font-size='100' font-weight='900' fill='white' text-anchor='middle'>P</text><g transform='translate(148,72) scale(1.4)'><rect x='-8' y='-14' width='16' height='20' rx='3' fill='white'/><rect x='-5' y='-20' width='4' height='8' rx='1' fill='white'/><rect x='1' y='-20' width='4' height='8' rx='1' fill='white'/><path d='M0,6 C0,12 8,12 8,18 C8,24 0,24 0,30' fill='none' stroke='white' stroke-width='3' stroke-linecap='round'/></g></svg>"
-  },
-  {
-    "id": "parkering-forbudt",
-    "description": "Parkering er forbudt. Standsning er dog tilladt i kortere tid (maks. 3 minutter).",
-    "tags": ["forbudt", "alle"],
-    "rules": [
-      "Parkering forbudt",
-      "Standsning tilladt (maks. 3 min)",
-      "Gælder hele døgnet"
+      { "type": "no-parking", "windows": [], "days": "all", "note": "Parkering forbudt (standsning OK i 3 min)" }
     ],
     "svgPreview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><rect width='200' height='200' rx='10' fill='#1A3A8F'/><circle cx='100' cy='100' r='72' fill='#1A3A8F'/><circle cx='100' cy='100' r='72' fill='none' stroke='#CC0000' stroke-width='12'/><line x1='49' y1='49' x2='151' y2='151' stroke='#CC0000' stroke-width='12' stroke-linecap='round'/></svg>"
   },
   {
     "id": "handicap-parkering",
-    "title": "Handicapparkering",
+    "title": "Handicapparkering (hele døgnet)",
     "description": "Reserveret til køretøjer med gyldigt handicap-parkeringskort. Ingen tidsbegrænsning.",
     "tags": ["handicap", "alle"],
+    "baseStatus": "limited",
+    "baseNote": "Kræver handicapkort",
     "rules": [
       "Kun for køretøjer med handicap-parkeringskort",
       "Ingen tidsbegrænsning",
       "Gælder hele døgnet"
+    ],
+    "timeRules": [
+      { "type": "limited", "windows": [], "days": "all", "note": "Kræver handicapkort" }
     ],
     "svgPreview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><rect width='200' height='200' rx='10' fill='#1A3A8F'/><rect x='6' y='6' width='188' height='188' rx='7' fill='none' stroke='white' stroke-width='3'/><text x='80' y='130' font-family='Arial Black,Arial,sans-serif' font-size='90' font-weight='900' fill='white' text-anchor='middle'>P</text><circle cx='148' cy='65' r='10' fill='white'/><path d='M148,75 L148,105 L135,120 M148,105 L162,120 M138,90 L158,90' stroke='white' stroke-width='5' fill='none' stroke-linecap='round'/></svg>"
   }

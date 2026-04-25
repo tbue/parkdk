@@ -302,14 +302,28 @@ function ruleApplies(rule, hour, dayType) {
  * otherwise fall back to tag/text heuristics.
  */
 function classifyHour(sign, hour, dayType) {
+  // ── Derive base status from tags (used when no rule matches) ──
+  // This is the "always-on" restriction of the sign.
+  // e.g. a beboer sign is always 'limited' even outside time windows.
+  const tags = sign.tags || [];
+  let baseStatus = sign.baseStatus || 'free';
+  let baseNote   = sign.baseNote   || '';
+  if (!sign.baseStatus) {
+    if (tags.includes('beboere'))     { baseStatus = 'limited';    baseNote = 'Kun beboere'; }
+    else if (tags.includes('handicap')) { baseStatus = 'limited';  baseNote = 'Kræver handicapkort'; }
+    else if (tags.includes('el-bil')) { baseStatus = 'ev-only';    baseNote = 'Kun elbiler'; }
+    else if (tags.includes('betaling')) { baseStatus = 'paid';     baseNote = 'Betaling kræves'; }
+    else if (tags.includes('forbudt')) { baseStatus = 'no-parking'; baseNote = ''; }
+  }
+
   // ── Structured path ──
   if (sign.timeRules && sign.timeRules.length) {
-    let best = 'free';
-    let bestNote = '';
+    let best     = baseStatus;
+    let bestNote = baseNote;
     for (const rule of sign.timeRules) {
       if (ruleApplies(rule, hour, dayType)) {
         if (PRIORITY.indexOf(rule.type) < PRIORITY.indexOf(best)) {
-          best = rule.type;
+          best     = rule.type;
           bestNote = rule.note || '';
         }
       }
@@ -317,8 +331,7 @@ function classifyHour(sign, hour, dayType) {
     return { status: best, note: bestNote };
   }
 
-  // ── Fallback: heuristic from tags + rules text ──
-  const tags  = sign.tags || [];
+  // ── Fallback: heuristic from rules text ──
   const rules = (sign.rules || []).join(' ').toLowerCase();
 
   let restrictFrom = null, restrictTo = null;
@@ -331,15 +344,15 @@ function classifyHour(sign, hour, dayType) {
     ? (hour >= restrictFrom && hour < restrictTo)
     : true;
 
-  // Weekday check from rules text (e.g. "mandag–fredag")
+  // Weekday check from rules text
   let dayRestricted = true;
   const dayRangeMatch = rules.match(/(man|tir|ons|tor|fre|lør|søn)[a-z]*[–\-](man|tir|ons|tor|fre|lør|søn)/i);
   if (dayRangeMatch) {
     const ORDER = ['Man','Tir','Ons','Tor','Fre','Lør','Søn'];
     const dayShortMap = { weekday:'Man', saturday:'Lør', sunday:'Søn' };
     const todayShort  = dayShortMap[dayType] || 'Man';
-    const fromIdx = ORDER.findIndex(d => d.toLowerCase().startsWith(dayRangeMatch[1].toLowerCase()));
-    const toIdx   = ORDER.findIndex(d => d.toLowerCase().startsWith(dayRangeMatch[2].toLowerCase()));
+    const fromIdx  = ORDER.findIndex(d => d.toLowerCase().startsWith(dayRangeMatch[1].toLowerCase()));
+    const toIdx    = ORDER.findIndex(d => d.toLowerCase().startsWith(dayRangeMatch[2].toLowerCase()));
     const todayIdx = ORDER.indexOf(todayShort);
     if (todayIdx !== -1 && fromIdx !== -1 && toIdx !== -1)
       dayRestricted = todayIdx >= fromIdx && todayIdx <= toIdx;
@@ -347,13 +360,14 @@ function classifyHour(sign, hour, dayType) {
 
   const active = inWindow && dayRestricted;
 
-  if (tags.includes('forbudt') && active)       return { status: 'forbidden' };
-  if (tags.includes('el-bil') && active)        return { status: 'ev-only' };
-  if (rules.includes('betaling') && active)     return { status: 'paid' };
-  if (tags.includes('tidsbegrænset') && active) return { status: 'limited' };
-  if (tags.includes('beboere') && active)       return { status: 'limited', note: 'Kun beboere' };
-  if (tags.includes('handicap'))                return { status: 'free', note: 'Kræver handicapkort' };
-  return { status: 'free' };
+  if (active) {
+    if (tags.includes('forbudt'))       return { status: 'forbidden',  note: '' };
+    if (tags.includes('el-bil'))        return { status: 'ev-only',    note: '' };
+    if (rules.includes('betaling'))     return { status: 'paid',       note: '' };
+    if (tags.includes('tidsbegrænset')) return { status: 'limited',    note: '' };
+  }
+  // Outside active window → fall back to base
+  return { status: baseStatus, note: baseNote };
 }
 
 const WEEKDAY_NAMES = ['søndag','mandag','tirsdag','onsdag','torsdag','fredag','lørdag'];
