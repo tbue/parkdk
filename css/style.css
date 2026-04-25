@@ -695,27 +695,36 @@ body {
 .tl-nav {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin: 8px 0 12px;
+  gap: 8px;
+  margin: 8px 0 10px;
 }
 
 .tl-nav-btn {
-  background: var(--blue-600, #1A3A8F);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 5px 14px;
-  font-size: 13px;
+  background: transparent;
+  color: #1A3A8F;
+  border: 1.5px solid #1A3A8F;
+  border-radius: 20px;
+  padding: 3px 12px;
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
-  transition: opacity .15s;
+  transition: background .15s, color .15s;
+  white-space: nowrap;
 }
-.tl-nav-btn:disabled { opacity: .35; cursor: default; }
-.tl-nav-btn:not(:disabled):hover { opacity: .85; }
+.tl-nav-btn:disabled {
+  opacity: .3;
+  cursor: default;
+}
+.tl-nav-btn:not(:disabled):hover {
+  background: #1A3A8F;
+  color: white;
+}
 
 .tl-date-label {
   flex: 1;
   text-align: center;
   font-weight: 700;
-  font-size: 14px;
-  color: var(--grey-800, #111);
+  font-size: 13px;
+  color: #111;
+  letter-spacing: .01em;
 }
