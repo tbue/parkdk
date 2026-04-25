@@ -1,0 +1,81 @@
+[
+  {
+    "id": "p-tidsbegrænset-1",
+    "title": "Parkering – Maks. 2 timer",
+    "description": "Parkering tilladt for alle i maks. 2 timer på hverdage 8–18.",
+    "tags": ["tidsbegrænset", "alle", "hverdage"],
+    "rules": [
+      "Parkering tilladt for alle",
+      "Maksimal parkeringstid: 2 timer",
+      "Gælder mandag–fredag kl. 8:00–18:00",
+      "Uden for tidsrummet er parkering ubegrænset"
+    ],
+    "svgPreview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 160'><rect width='120' height='160' rx='8' fill='#003E8C'/><text x='60' y='55' font-family='Arial,sans-serif' font-size='52' font-weight='bold' fill='white' text-anchor='middle'>P</text><rect x='10' y='72' width='100' height='1.5' fill='white' opacity='0.5'/><text x='60' y='92' font-family='Arial,sans-serif' font-size='11' fill='white' text-anchor='middle'>Maks. 2 timer</text><text x='60' y='108' font-family='Arial,sans-serif' font-size='10' fill='#cce0ff' text-anchor='middle'>Man–fre</text><text x='60' y='122' font-family='Arial,sans-serif' font-size='10' fill='#cce0ff' text-anchor='middle'>8:00–18:00</text></svg>"
+  },
+  {
+    "id": "el-ladeplads-kun-elbil",
+    "title": "El-ladeplads – Kun elbiler",
+    "description": "Ladeplads forbeholdt elektriske køretøjer. Ingen tidsbegrænsning.",
+    "tags": ["el-bil", "ladeplads", "forbudt for andre"],
+    "rules": [
+      "Kun for elektriske køretøjer (elbiler og plug-in hybridbiler)",
+      "Køretøjet skal være tilsluttet laderen",
+      "Forbudt for konventionelle biler",
+      "Gælder hele døgnet, alle dage"
+    ],
+    "svgPreview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 160'><rect width='120' height='160' rx='8' fill='#FF6B00'/><text x='60' y='50' font-family='Arial,sans-serif' font-size='44' font-weight='bold' fill='white' text-anchor='middle'>P</text><text x='60' y='72' font-family='Arial,sans-serif' font-size='22' fill='white' text-anchor='middle'>⚡</text><rect x='10' y='82' width='100' height='1.5' fill='white' opacity='0.5'/><text x='60' y='100' font-family='Arial,sans-serif' font-size='10' fill='white' text-anchor='middle'>Kun for elbiler</text><text x='60' y='116' font-family='Arial,sans-serif' font-size='9' fill='#ffe0cc' text-anchor='middle'>Tilslutning påkrævet</text></svg>"
+  },
+  {
+    "id": "el-ladeplads-tidsbegrænset",
+    "title": "El-ladeplads – Alle, maks. 1 time",
+    "description": "Ladeplads for alle, men maksimalt 1 time på hverdage. Elbiler prioriteres.",
+    "tags": ["el-bil", "tidsbegrænset", "alle", "ladeplads"],
+    "rules": [
+      "Åben for alle køretøjer",
+      "Maksimal parkeringstid: 1 time",
+      "Gælder mandag–fredag kl. 8:00–17:00",
+      "Elbiler kan benytte ladestik under parkering",
+      "Uden for tidsrummet: fri parkering"
+    ],
+    "svgPreview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 160'><rect width='120' height='160' rx='8' fill='#003E8C'/><text x='45' y='55' font-family='Arial,sans-serif' font-size='44' font-weight='bold' fill='white' text-anchor='middle'>P</text><text x='90' y='48' font-family='Arial,sans-serif' font-size='20' fill='#FF6B00' text-anchor='middle'>⚡</text><rect x='10' y='72' width='100' height='1.5' fill='white' opacity='0.5'/><text x='60' y='90' font-family='Arial,sans-serif' font-size='10' fill='white' text-anchor='middle'>Alle – Maks. 1 time</text><text x='60' y='106' font-family='Arial,sans-serif' font-size='9' fill='#cce0ff' text-anchor='middle'>Man–fre 8:00–17:00</text></svg>"
+  },
+  {
+    "id": "beboerparkering",
+    "title": "Beboerparkering – Zone B",
+    "description": "Kun for beboere med gyldig beboerlicens til zone B.",
+    "tags": ["beboere", "zone", "tidsbegrænset"],
+    "rules": [
+      "Kun for beboere med gyldig parkeringslicens – Zone B",
+      "Gælder mandag–fredag kl. 8:00–22:00 samt lørdag 8:00–14:00",
+      "Besøgende kan parkere uden licens i maks. 1 time",
+      "Licens fås ved henvendelse til kommunen"
+    ],
+    "svgPreview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 160'><rect width='120' height='160' rx='8' fill='#003E8C'/><text x='60' y='50' font-family='Arial,sans-serif' font-size='44' font-weight='bold' fill='white' text-anchor='middle'>P</text><rect x='10' y='62' width='100' height='1.5' fill='white' opacity='0.5'/><text x='60' y='80' font-family='Arial,sans-serif' font-size='10' fill='white' text-anchor='middle'>Beboere</text><text x='60' y='95' font-family='Arial,sans-serif' font-size='18' font-weight='bold' fill='#FFD700' text-anchor='middle'>Zone B</text><text x='60' y='114' font-family='Arial,sans-serif' font-size='9' fill='#cce0ff' text-anchor='middle'>Man–fre 8–22</text><text x='60' y='128' font-family='Arial,sans-serif' font-size='9' fill='#cce0ff' text-anchor='middle'>Lør 8–14</text></svg>"
+  },
+  {
+    "id": "parkering-forbudt",
+    "title": "Parkering forbudt",
+    "description": "Parkering er strengt forbudt i dette område til enhver tid.",
+    "tags": ["forbudt", "altid"],
+    "rules": [
+      "Parkering er forbudt",
+      "Gælder hele døgnet, alle ugens dage",
+      "Standsning kan være tilladt i kortere tid (tjek lokale regler)",
+      "Overtrædelse medfører afgift og evt. fjernelse af køretøj"
+    ],
+    "svgPreview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 160'><rect width='120' height='160' rx='8' fill='#CC0000'/><circle cx='60' cy='72' r='38' fill='none' stroke='white' stroke-width='5'/><line x1='33' y1='45' x2='87' y2='99' stroke='white' stroke-width='5'/><text x='60' y='140' font-family='Arial,sans-serif' font-size='11' fill='white' text-anchor='middle'>Parkering forbudt</text></svg>"
+  },
+  {
+    "id": "handicap-parkering",
+    "title": "Handicapparkering",
+    "description": "Forbeholdt køretøjer med gyldigt handicap-parkeringskort (PS).",
+    "tags": ["handicap", "alle tider"],
+    "rules": [
+      "Kun for køretøjer med gyldigt EU-handicap-parkeringskort",
+      "Kortet skal placeres synligt i forruden",
+      "Ingen tidsbegrænsning med gyldigt kort",
+      "Gælder hele døgnet, alle ugens dage"
+    ],
+    "svgPreview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 160'><rect width='120' height='160' rx='8' fill='#003E8C'/><text x='60' y='52' font-family='Arial,sans-serif' font-size='38' font-weight='bold' fill='white' text-anchor='middle'>P</text><rect x='10' y='64' width='100' height='1.5' fill='white' opacity='0.4'/><text x='60' y='100' font-family='Arial,sans-serif' font-size='34' fill='white' text-anchor='middle'>♿</text><text x='60' y='130' font-family='Arial,sans-serif' font-size='9' fill='#cce0ff' text-anchor='middle'>Handicap – PS kort</text></svg>"
+  }
+]

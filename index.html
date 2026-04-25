@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ParkDK – Dansk parkeringsskilt-fortolker</title>
+  <meta name="description" content="Analysér, udforsk og byg danske parkeringsskilte med AI-hjælp." />
+  <meta name="theme-color" content="#003E8C" />
+  <link rel="stylesheet" href="css/style.css" />
+  <!-- Favicon inline -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23003E8C'/><text x='16' y='24' font-family='Arial' font-size='22' font-weight='900' fill='white' text-anchor='middle'>P</text></svg>" />
+</head>
+<body>
+
+<!-- ══════════════ HEADER ══════════════ -->
+<header class="site-header">
+  <div class="header-inner">
+    <a class="logo" href="#" onclick="switchTab('analyse');return false;">
+      <div class="logo-icon">P</div>
+      <span class="logo-text">ParkDK</span>
+    </a>
+    <nav class="site-nav" role="tablist">
+      <button class="nav-btn active" data-tab="analyse" role="tab" aria-selected="true">🔍 Analysér</button>
+      <button class="nav-btn" data-tab="bibliotek" role="tab" aria-selected="false">📚 Bibliotek</button>
+      <button class="nav-btn" data-tab="byg" role="tab" aria-selected="false">🔧 Byg skilt</button>
+    </nav>
+  </div>
+</header>
+
+<!-- ══════════════ MAIN ══════════════ -->
+<main class="site-main">
+
+  <!-- ── ANALYSE TAB ── -->
+  <section id="analyse" class="tab-panel active" role="tabpanel">
+    <h1 class="section-title">Foto-analyse</h1>
+    <p class="section-sub">Upload et foto af et parkeringsskilt og få en klar forklaring på dansk via AI.</p>
+
+    <!-- API key -->
+    <div class="api-key-row">
+      <input type="password" id="api-key-input" placeholder="OpenAI API-nøgle (sk-…)" autocomplete="off" />
+      <button class="btn-sm" id="api-key-save">Gem nøgle</button>
+    </div>
+
+    <div class="analyse-layout">
+      <!-- Upload + button -->
+      <div>
+        <div class="upload-zone" id="drop-zone">
+          <input type="file" id="file-input" accept="image/*" aria-label="Vælg billede" />
+          <div class="upload-icon">📷</div>
+          <h3>Træk og slip et billede her</h3>
+          <p>— eller klik for at vælge fil (JPG, PNG, WEBP)</p>
+          <div class="preview-img-wrap" id="preview-wrap">
+            <img id="preview-img" alt="Forhåndsvisning af uploadet skilt" />
+          </div>
+        </div>
+        <button class="btn-analyse" id="analyse-btn" disabled>🔍 Analysér skilt</button>
+      </div>
+
+      <!-- Result -->
+      <div class="result-card empty" id="result-card">
+        <div class="empty-icon">🅿️</div>
+        <p>Resultat vises her<br>efter analyse</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── BIBLIOTEK TAB ── -->
+  <section id="bibliotek" class="tab-panel" role="tabpanel">
+    <h1 class="section-title">Skilt-bibliotek</h1>
+    <p class="section-sub">Udforsk kendte danske parkeringsskilte og reglerne bag dem.</p>
+
+    <div class="filter-bar" id="filter-bar" role="group" aria-label="Filtrer skilte efter kategori">
+      <button class="filter-chip active" data-tag="alle">Alle</button>
+    </div>
+
+    <div class="signs-grid" id="signs-grid" role="list">
+      <!-- Filled by JS -->
+      <p style="color:var(--grey-400)">Indlæser skilte…</p>
+    </div>
+  </section>
+
+  <!-- ── BYG TAB ── -->
+  <section id="byg" class="tab-panel" role="tabpanel">
+    <h1 class="section-title">Byg dit skilt</h1>
+    <p class="section-sub">Sammensæt et parkeringsskilt og hent det som SVG eller gem det i biblioteket.</p>
+
+    <div class="byg-layout">
+      <!-- Form -->
+      <form class="byg-form" id="byg-form" onsubmit="return false;">
+
+        <div class="form-group">
+          <label for="sign-type">Skilte-type</label>
+          <select id="sign-type" name="sign-type">
+            <option value="tilladt">Parkering tilladt</option>
+            <option value="forbudt">Parkering forbudt</option>
+            <option value="el-ladeplads">El-ladeplads</option>
+            <option value="tidsbegrænset">Tidsbegrænset</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Tidsrum</label>
+          <div class="time-row">
+            <input type="time" id="time-from" name="time-from" value="08:00" />
+            <span>til</span>
+            <input type="time" id="time-to" name="time-to" value="18:00" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Ugedage</label>
+          <div class="weekday-grid">
+            <label class="weekday-label"><input type="checkbox" name="weekday" value="Man" checked /> Man</label>
+            <label class="weekday-label"><input type="checkbox" name="weekday" value="Tir" checked /> Tir</label>
+            <label class="weekday-label"><input type="checkbox" name="weekday" value="Ons" checked /> Ons</label>
+            <label class="weekday-label"><input type="checkbox" name="weekday" value="Tor" checked /> Tor</label>
+            <label class="weekday-label"><input type="checkbox" name="weekday" value="Fre" checked /> Fre</label>
+            <label class="weekday-label"><input type="checkbox" name="weekday" value="Lør" /> Lør</label>
+            <label class="weekday-label"><input type="checkbox" name="weekday" value="Søn" /> Søn</label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="max-tid">Maks. parkeringstid</label>
+          <div class="time-unit-row">
+            <input type="number" id="max-tid" name="max-tid" min="1" max="999" placeholder="fx 2" />
+            <select id="max-unit" name="max-unit">
+              <option value="min">minutter</option>
+              <option value="time" selected>timer</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Kun for</label>
+          <div class="checkbox-group">
+            <label class="checkbox-label"><input type="checkbox" name="kun-for" value="alle" checked /> Alle</label>
+            <label class="checkbox-label"><input type="checkbox" name="kun-for" value="el-biler" /> El-biler</label>
+            <label class="checkbox-label"><input type="checkbox" name="kun-for" value="beboere" /> Beboere</label>
+            <label class="checkbox-label"><input type="checkbox" name="kun-for" value="handicap" /> Handicap</label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="undtagelser">Undtagelser / noter</label>
+          <textarea id="undtagelser" name="undtagelser" rows="3" placeholder="fx Dispensation for håndværkere…"></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-primary" id="download-btn" type="button">⬇️ Download SVG</button>
+          <button class="btn-orange" id="gem-btn" type="button">📚 Gem i bibliotek</button>
+        </div>
+      </form>
+
+      <!-- Preview -->
+      <div class="byg-preview-panel">
+        <div class="byg-preview-card">
+          <h3>Forhåndsvisning</h3>
+          <div id="preview-container">
+            <!-- SVG injected by JS -->
+          </div>
+          <p class="preview-desc" id="preview-desc"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ══════════════ MODAL ══════════════ -->
+<div class="modal-overlay" id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-title">Skilt-detaljer</h2>
+      <button class="modal-close" id="modal-close" aria-label="Luk">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-preview" id="modal-preview"></div>
+      <h3>Regler</h3>
+      <ul class="modal-rules" id="modal-rules-list"></ul>
+      <h3 style="margin-top:12px">Kategorier</h3>
+      <div class="tag-list" style="margin-top:8px" id="modal-tags"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ TOAST ══════════════ -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- ══════════════ FOOTER ══════════════ -->
+<footer class="site-footer">
+  <p>ParkDK &copy; 2025 &nbsp;·&nbsp; Bygget til GitHub Pages &nbsp;·&nbsp; 
+  <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">Få OpenAI API-nøgle</a></p>
+</footer>
+
+<script src="js/app.js"></script>
+</body>
+</html>
