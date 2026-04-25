@@ -267,6 +267,23 @@ const modalClose   = document.getElementById('modal-close');
  * Priority (højest vinder): forbidden > no-parking > ev-only > paid > limited > free
  */
 
+/**
+ * Translate a raw status/note pair based on the viewer's car type.
+ * - 'ev-only' zone + normal car → no-parking (forbudt for alm. bil)
+ * - 'ev-only' zone + ev car     → free/limited (elbiler må lade)
+ * - All other statuses are unchanged regardless of car type.
+ */
+function applyCarType({ status, note }, carType) {
+  if (status === 'ev-only') {
+    if (carType === 'ev') {
+      return { status: 'free', note: note || 'Kun elbiler under opladning' };
+    } else {
+      return { status: 'no-parking', note: 'Kun elbiler – forbudt for alm. biler' };
+    }
+  }
+  return { status, note };
+}
+
 const PRIORITY = ['forbidden','no-parking','ev-only','paid','limited','free'];
 
 const STATUS_LABEL = {
@@ -300,8 +317,9 @@ function ruleApplies(rule, hour, dayType) {
 /**
  * Classify a single hour for a sign using timeRules if available,
  * otherwise fall back to tag/text heuristics.
+ * carType: 'normal' | 'ev'
  */
-function classifyHour(sign, hour, dayType) {
+function classifyHour(sign, hour, dayType, carType = 'normal') {
   // ── Derive base status from tags (used when no rule matches) ──
   // This is the "always-on" restriction of the sign.
   // e.g. a beboer sign is always 'limited' even outside time windows.
@@ -328,7 +346,7 @@ function classifyHour(sign, hour, dayType) {
         }
       }
     }
-    return { status: best, note: bestNote };
+    return applyCarType({ status: best, note: bestNote }, carType);
   }
 
   // ── Fallback: heuristic from rules text ──
@@ -373,7 +391,7 @@ function classifyHour(sign, hour, dayType) {
 const WEEKDAY_NAMES = ['søndag','mandag','tirsdag','onsdag','torsdag','fredag','lørdag'];
 const DAY_NAMES_DA  = ['Søndag','Mandag','Tirsdag','Onsdag','Torsdag','Fredag','Lørdag'];
 
-function buildTimeline(sign, offsetDays = 0) {
+function buildTimeline(sign, offsetDays = 0, carType = 'normal') {
   const base = new Date();
   base.setDate(base.getDate() + offsetDays);
   // If offsetDays > 0 start from 00:00 that day, else start from current hour
@@ -390,7 +408,7 @@ function buildTimeline(sign, offsetDays = 0) {
     const dayType = getDayType(slotDate);
     const dayName = WEEKDAY_NAMES[slotDate.getDay()];
 
-    const { status, note } = classifyHour(sign, absHour, dayType);
+    const { status, note } = classifyHour(sign, absHour, dayType, carType);
     const isNow   = offsetDays === 0 && i === 0;
     const label   = isNow ? 'Nu' : (absHour === 0 ? '0' : String(absHour));
     const dayIndicator = (absHour === 0 && (i > 0 || offsetDays > 0))
@@ -410,6 +428,7 @@ function buildTimeline(sign, offsetDays = 0) {
 
 let _modalSign = null;
 let _timelineOffset = 0;
+let _carType = 'normal'; // 'normal' | 'ev'
 
 function renderTimelineSection() {
   const now = new Date();
@@ -426,12 +445,15 @@ function renderTimelineSection() {
 
   document.getElementById('tl-date-label').textContent = dateLabel;
   document.getElementById('tl-prev').disabled = _timelineOffset <= 0;
-  document.getElementById('modal-timeline').innerHTML = buildTimeline(_modalSign, _timelineOffset);
+  document.getElementById('modal-timeline').innerHTML = buildTimeline(_modalSign, _timelineOffset, _carType);
 }
 
 function openModal(sign) {
   _modalSign = sign;
   _timelineOffset = 0;
+  _carType = 'normal';
+  document.getElementById('car-normal').classList.add('active');
+  document.getElementById('car-ev').classList.remove('active');
   document.getElementById('modal-title').textContent = sign.title;
   document.getElementById('modal-preview').innerHTML = sign.svgPreview;
   document.getElementById('modal-rules-list').innerHTML =
@@ -448,6 +470,19 @@ document.getElementById('tl-prev').addEventListener('click', () => {
 });
 document.getElementById('tl-next').addEventListener('click', () => {
   _timelineOffset++;
+  renderTimelineSection();
+});
+
+document.getElementById('car-normal').addEventListener('click', () => {
+  _carType = 'normal';
+  document.getElementById('car-normal').classList.add('active');
+  document.getElementById('car-ev').classList.remove('active');
+  renderTimelineSection();
+});
+document.getElementById('car-ev').addEventListener('click', () => {
+  _carType = 'ev';
+  document.getElementById('car-ev').classList.add('active');
+  document.getElementById('car-normal').classList.remove('active');
   renderTimelineSection();
 });
 
@@ -498,10 +533,13 @@ function evPlugIcon(x, y, scale = 1) {
 
 // ── Main sign builder ──
 function buildSVG(d) {
-  const isForbudt  = d.type === 'forbudt';
-  const isEV       = d.type === 'el-ladeplads';
-  const isBeboer   = d.forGroup.includes('beboere');
-  const isHandicap = d.forGroup.includes('handicap');
+  const isForbudt         = d.type === 'forbudt';
+  const isStandsningForbudt = d.type === 'standsning-forbudt';
+  const isEV              = d.type === 'el-ladeplads' || d.type === 'el-ladeplads-betaling';
+  const isEVBetaling      = d.type === 'el-ladeplads-betaling';
+  const isBeboer          = d.type === 'beboer' || d.forGroup.includes('beboere');
+  const isHandicap        = d.type === 'handicap' || d.forGroup.includes('handicap');
+  const isBetaling        = d.type === 'betaling';
 
   // Danish road sign blue: #1A3A8F (main P-sign blue from real signs)
   const BLUE   = '#1A3A8F';
@@ -529,13 +567,16 @@ function buildSVG(d) {
   // ── Main sign ──
   let mainContent = '';
 
-  if (isForbudt) {
-    // Parkering forbudt: blue circle with red border and single diagonal
+  if (isForbudt || isStandsningForbudt) {
+    // Parkering forbudt: blue rect + red circle + diagonal(s)
+    const diag2 = isStandsningForbudt
+      ? `<line x1="149" y1="51" x2="51" y2="149" stroke="#CC0000" stroke-width="12" stroke-linecap="round"/>`
+      : '';
     mainContent = `
-      <!-- Blue circle, red ring, diagonal -->
       <circle cx="100" cy="100" r="72" fill="${BLUE}"/>
       <circle cx="100" cy="100" r="72" fill="none" stroke="#CC0000" stroke-width="12"/>
-      <line x1="49" y1="49" x2="151" y2="151" stroke="#CC0000" stroke-width="12" stroke-linecap="round"/>
+      <line x1="51" y1="51" x2="149" y2="149" stroke="#CC0000" stroke-width="12" stroke-linecap="round"/>
+      ${diag2}
     `;
   } else if (isEV) {
     // EV sign: blue background, white P left + plug icon right
@@ -545,6 +586,14 @@ function buildSVG(d) {
         fill="${WHITE}" text-anchor="middle" dominant-baseline="auto">P</text>
       <!-- EV plug icon, right side -->
       ${evPlugIcon(148, 72, 1.4)}
+    `;
+  } else if (isBetaling) {
+    // Betalingsparkering: P + kr/DKK symbol
+    mainContent = `
+      <text x="75" y="130" font-family="Arial Black,Arial,sans-serif" font-size="90" font-weight="900"
+        fill="${WHITE}" text-anchor="middle">P</text>
+      <text x="158" y="85" font-family="Arial Black,Arial,sans-serif" font-size="44" font-weight="900"
+        fill="${WHITE}" text-anchor="middle">kr</text>
     `;
   } else if (isHandicap) {
     // Handicap: blue P + wheelchair symbol
@@ -606,7 +655,17 @@ function updateSignPreview() {
   document.getElementById('preview-container').innerHTML = svg;
 
   // Description text
-  const typeLabels = { tilladt:'Parkering tilladt', forbudt:'Parkering forbudt', 'el-ladeplads':'El-ladeplads', tidsbegrænset:'Tidsbegrænset parkering' };
+  const typeLabels = {
+    'tilladt':              'Parkering tilladt',
+    'tidsbegrænset':        'Tidsbegrænset parkering',
+    'betaling':             'Betalingsparkering',
+    'el-ladeplads':         'El-ladeplads',
+    'el-ladeplads-betaling':'El-ladeplads + betalingszone',
+    'beboer':               'Beboerparkering',
+    'handicap':             'Handicapparkering',
+    'forbudt':              'Parkering forbudt',
+    'standsning-forbudt':   'Standsning og parkering forbudt'
+  };
   const parts = [typeLabels[d.type] || d.type];
   if (d.maxVal) parts.push(`maks. ${d.maxVal} ${d.maxUnit}`);
   if (d.timeFrom && d.timeTo) parts.push(`kl. ${d.timeFrom}–${d.timeTo}`);

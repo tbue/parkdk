@@ -91,10 +91,15 @@
         <div class="form-group">
           <label for="sign-type">Skilte-type</label>
           <select id="sign-type" name="sign-type">
-            <option value="tilladt">Parkering tilladt</option>
-            <option value="forbudt">Parkering forbudt</option>
+            <option value="tilladt">Parkering tilladt (P)</option>
+            <option value="tidsbegrænset">Tidsbegrænset parkering</option>
+            <option value="betaling">Betalingsparkering</option>
             <option value="el-ladeplads">El-ladeplads</option>
-            <option value="tidsbegrænset">Tidsbegrænset</option>
+            <option value="el-ladeplads-betaling">El-ladeplads + betaling</option>
+            <option value="beboer">Beboerparkering</option>
+            <option value="handicap">Handicapparkering</option>
+            <option value="forbudt">Parkering forbudt</option>
+            <option value="standsning-forbudt">Standsning og parkering forbudt</option>
           </select>
         </div>
 
@@ -186,6 +191,10 @@
         <h3 style="margin-top:12px">Kategorier</h3>
         <div class="tag-list" style="margin-top:8px" id="modal-tags"></div>
         <h3 style="margin-top:20px">Næste 24 timer</h3>
+        <div class="car-type-toggle">
+          <button class="car-btn active" id="car-normal" data-type="normal">🚗 Alm. bil</button>
+          <button class="car-btn" id="car-ev" data-type="ev">⚡ Elbil</button>
+        </div>
         <div class="tl-nav">
           <button id="tl-prev" class="tl-nav-btn" disabled>◀ Forrige</button>
           <span id="tl-date-label" class="tl-date-label">I dag</span>

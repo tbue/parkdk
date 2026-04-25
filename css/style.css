@@ -643,6 +643,32 @@ body {
 /* ════════════════════════════════
    24-TIMERS TIMELINE
 ════════════════════════════════ */
+/* Car type toggle */
+.car-type-toggle {
+  display: flex;
+  gap: 8px;
+  margin: 10px 0 12px;
+}
+.car-btn {
+  flex: 1;
+  padding: 7px 12px;
+  border: 2px solid var(--blue);
+  background: transparent;
+  color: var(--blue);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+.car-btn.active {
+  background: var(--blue);
+  color: white;
+}
+.car-btn:hover:not(.active) {
+  background: rgba(26,58,143,0.08);
+}
+
 .timeline-wrap { margin-top: 12px; }
 
 .timeline {
