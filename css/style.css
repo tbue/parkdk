@@ -678,3 +678,16 @@ body {
 .legend-dot.paid      { background: #3b82f6; }
 .legend-dot.ev-only   { background: #a855f7; }
 .legend-dot.forbidden { background: #ef4444; }
+.legend-dot.no-parking { background: #f97316; }
+
+.tl-slot.no-parking .tl-bar { background: #f97316; }
+
+.tl-midnight {
+  position: absolute;
+  top: -16px;
+  font-size: 8px;
+  color: #888;
+  white-space: nowrap;
+}
+
+.tl-slot { position: relative; }

@@ -246,68 +246,115 @@ const modalClose   = document.getElementById('modal-close');
 ════════════════════════════════ */
 
 /**
- * Classify a single hour slot for a sign.
- * Returns: 'free' | 'limited' | 'paid' | 'ev-only' | 'forbidden'
+ * Structured sign time rules (sign.timeRules[]).
+ * Each rule: { type, windows: [{from,to}], days, maxHours, note }
  *
- * sign.rules is free text, so we parse sign.tags + common patterns.
- * For signs from the builder we also get structured data via sign._data.
+ * type:  'forbidden'   – standsning og parkering forbudt
+ *        'no-parking'  – parkering forbudt (standsning OK)
+ *        'limited'     – tilladt med max-tid / p-skive
+ *        'ev-only'     – kun elbiler / opladning
+ *        'paid'        – betaling påkrævet
+ *        'free'        – fri parkering
+ *
+ * days:  'weekday'     – mandag–fredag (sort tekst på dansk skilt)
+ *        'saturday'    – lørdag        (parentes på dansk skilt)
+ *        'sunday'      – søndag+hellig (rød tekst på dansk skilt)
+ *        'all'         – hele ugen
+ *
+ * windows: [{from: 7, to: 9}]  — gælder i disse timer
+ *          empty/null           — gælder hele dagen
+ *
+ * Priority (højest vinder): forbidden > no-parking > ev-only > paid > limited > free
  */
-function classifyHour(sign, hour, dayName) {
+
+const PRIORITY = ['forbidden','no-parking','ev-only','paid','limited','free'];
+
+const STATUS_LABEL = {
+  'free':       'Fri parkering',
+  'limited':    'Tidsbegrænset',
+  'paid':       'Betaling kræves',
+  'ev-only':    'Kun elbiler',
+  'no-parking': 'Parkering forbudt',
+  'forbidden':  'Standsning forbudt'
+};
+
+// Map JS getDay() (0=Sun) to day-type strings
+function getDayType(date) {
+  const d = date.getDay();
+  if (d === 0) return 'sunday';
+  if (d === 6) return 'saturday';
+  return 'weekday';
+}
+
+function ruleApplies(rule, hour, dayType) {
+  // Day match
+  const ruleDays = rule.days || 'all';
+  if (ruleDays !== 'all' && ruleDays !== dayType) return false;
+
+  // Window match
+  const windows = rule.windows;
+  if (!windows || windows.length === 0) return true; // no window = all day
+  return windows.some(w => hour >= w.from && hour < w.to);
+}
+
+/**
+ * Classify a single hour for a sign using timeRules if available,
+ * otherwise fall back to tag/text heuristics.
+ */
+function classifyHour(sign, hour, dayType) {
+  // ── Structured path ──
+  if (sign.timeRules && sign.timeRules.length) {
+    let best = 'free';
+    let bestNote = '';
+    for (const rule of sign.timeRules) {
+      if (ruleApplies(rule, hour, dayType)) {
+        if (PRIORITY.indexOf(rule.type) < PRIORITY.indexOf(best)) {
+          best = rule.type;
+          bestNote = rule.note || '';
+        }
+      }
+    }
+    return { status: best, note: bestNote };
+  }
+
+  // ── Fallback: heuristic from tags + rules text ──
   const tags  = sign.tags || [];
   const rules = (sign.rules || []).join(' ').toLowerCase();
 
-  // Parse restriction window from rules text e.g. "8–18", "8:00–18:00", "8-19"
   let restrictFrom = null, restrictTo = null;
   const timeMatch = rules.match(/(\d{1,2})(?::00)?[–\-](\d{1,2})(?::00)?/);
   if (timeMatch) {
     restrictFrom = parseInt(timeMatch[1]);
     restrictTo   = parseInt(timeMatch[2]);
   }
-
   const inWindow = restrictFrom !== null
     ? (hour >= restrictFrom && hour < restrictTo)
-    : true; // no time info → always applies
+    : true;
 
-  // Danish day name → short
-  const DAY_MAP = { 'mandag':'Man','tirsdag':'Tir','onsdag':'Ons','torsdag':'Tor','fredag':'Fre','lørdag':'Lør','søndag':'Søn' };
-  const todayShort = DAY_MAP[dayName.toLowerCase()] || dayName;
-
-  // Check if today is a restricted weekday (parse "mandag–fredag" style from rules)
+  // Weekday check from rules text (e.g. "mandag–fredag")
   let dayRestricted = true;
   const dayRangeMatch = rules.match(/(man|tir|ons|tor|fre|lør|søn)[a-z]*[–\-](man|tir|ons|tor|fre|lør|søn)/i);
   if (dayRangeMatch) {
     const ORDER = ['Man','Tir','Ons','Tor','Fre','Lør','Søn'];
+    const dayShortMap = { weekday:'Man', saturday:'Lør', sunday:'Søn' };
+    const todayShort  = dayShortMap[dayType] || 'Man';
     const fromIdx = ORDER.findIndex(d => d.toLowerCase().startsWith(dayRangeMatch[1].toLowerCase()));
     const toIdx   = ORDER.findIndex(d => d.toLowerCase().startsWith(dayRangeMatch[2].toLowerCase()));
     const todayIdx = ORDER.indexOf(todayShort);
-    if (todayIdx !== -1 && fromIdx !== -1 && toIdx !== -1) {
+    if (todayIdx !== -1 && fromIdx !== -1 && toIdx !== -1)
       dayRestricted = todayIdx >= fromIdx && todayIdx <= toIdx;
-    }
   }
 
   const active = inWindow && dayRestricted;
 
-  if (tags.includes('forbudt') && active)       return 'forbidden';
-  if (tags.includes('el-bil') && active) {
-    // Check if ALL vehicles forbidden or just non-EV
-    if (rules.includes('kun') || rules.includes('forbeholdt') || rules.includes('kun for'))
-      return 'ev-only';
-    return 'ev-only';
-  }
-  if (rules.includes('betaling') && active)     return 'paid';
-  if (tags.includes('tidsbegrænset') && active) return 'limited';
-  if (tags.includes('beboere') && active)       return 'limited';
-  if (tags.includes('handicap'))                return 'free'; // always OK with card
-  return 'free';
+  if (tags.includes('forbudt') && active)       return { status: 'forbidden' };
+  if (tags.includes('el-bil') && active)        return { status: 'ev-only' };
+  if (rules.includes('betaling') && active)     return { status: 'paid' };
+  if (tags.includes('tidsbegrænset') && active) return { status: 'limited' };
+  if (tags.includes('beboere') && active)       return { status: 'limited', note: 'Kun beboere' };
+  if (tags.includes('handicap'))                return { status: 'free', note: 'Kræver handicapkort' };
+  return { status: 'free' };
 }
-
-const STATUS_LABEL = {
-  'free':     'Fri parkering',
-  'limited':  'Tidsbegrænset',
-  'paid':     'Betaling',
-  'ev-only':  'Kun elbiler',
-  'forbidden':'Forbudt'
-};
 
 const WEEKDAY_NAMES = ['søndag','mandag','tirsdag','onsdag','torsdag','fredag','lørdag'];
 
@@ -318,17 +365,21 @@ function buildTimeline(sign) {
 
   for (let i = 0; i < 24; i++) {
     const absHour = (nowH + i) % 24;
-    // Which day is this slot on?
     const slotDate = new Date(now);
     slotDate.setHours(absHour, 0, 0, 0);
-    if (absHour < nowH) slotDate.setDate(slotDate.getDate() + 1);
+    if (i > 0 && absHour <= nowH) slotDate.setDate(slotDate.getDate() + 1);
+    const dayType = getDayType(slotDate);
     const dayName = WEEKDAY_NAMES[slotDate.getDay()];
 
-    const status = classifyHour(sign, absHour, dayName);
-    const isNow  = i === 0;
-    const label  = isNow ? 'Nu' : (absHour === 0 ? '0' : absHour) + '';
+    const { status, note } = classifyHour(sign, absHour, dayType);
+    const isNow   = i === 0;
+    const label   = isNow ? 'Nu' : (absHour === 0 ? '0' : String(absHour));
+    const dayIndicator = (absHour === 0 && i > 0) ? `<div class="tl-midnight">${dayName.slice(0,3)}</div>` : '';
+    const tooltipDayLabel = { weekday: 'Hverdag', saturday: 'Lørdag', sunday: 'Søndag' }[dayType];
+    const tooltip = `${absHour}:00 (${tooltipDayLabel}) – ${STATUS_LABEL[status]}${note ? ': ' + note : ''}`;
 
-    html += `<div class="tl-slot ${status}${isNow ? ' now' : ''}" title="${absHour}:00 – ${STATUS_LABEL[status]}">
+    html += `<div class="tl-slot ${status}${isNow ? ' now' : ''}" title="${tooltip}">
+      ${dayIndicator}
       <div class="tl-bar"></div>
       <div class="tl-label">${label}</div>
     </div>`;

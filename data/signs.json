@@ -48,8 +48,44 @@
     "svgPreview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><rect width='200' height='200' rx='10' fill='#1A3A8F'/><rect x='6' y='6' width='188' height='188' rx='7' fill='none' stroke='white' stroke-width='3'/><text x='85' y='130' font-family='Arial Black,Arial,sans-serif' font-size='90' font-weight='900' fill='white' text-anchor='middle'>P</text><rect x='130' y='50' width='46' height='46' rx='6' fill='white'/><text x='153' y='85' font-family='Arial Black,Arial,sans-serif' font-size='36' font-weight='900' fill='#1A3A8F' text-anchor='middle'>B</text></svg>"
   },
   {
+    "id": "komplekst-eksempel",
+    "title": "Komplekst skilt – standsning/parkering",
+    "description": "Eksempel på et komplekst skilt som det på billedet. Standsningsforbud i myldretiden, parkeringsforbud uden for myldretid, og fri 2-timers parkering bagud fra skiltet.",
+    "tags": ["tidsbegrænset", "forbudt", "hverdage"],
+    "rules": [
+      "Fremad: Standsningsforbud 7–9 og 15–18 (hverdag)",
+      "Fremad: Parkeringsforbud 9–15 (hverdag), 7–13 (lørdag)",
+      "Bagud: Standsningsforbud 15–18 (hverdag)",
+      "Bagud: Parkering tilladt 9–15 (hverdag), 9–13 (lørdag) – maks. 2 timer med p-skive"
+    ],
+    "timeRules": [
+      { "type": "forbidden",   "windows": [{"from":7,"to":9},{"from":15,"to":18}], "days": "weekday", "note": "Standsningsforbud fremad" },
+      { "type": "no-parking",  "windows": [{"from":9,"to":15}],                    "days": "weekday", "note": "Parkeringsforbud fremad (standsning OK)" },
+      { "type": "no-parking",  "windows": [{"from":7,"to":13}],                    "days": "saturday","note": "Parkeringsforbud fremad (lørdag)" },
+      { "type": "forbidden",   "windows": [{"from":15,"to":18}],                   "days": "weekday", "note": "Standsningsforbud bagud" },
+      { "type": "limited",     "windows": [{"from":9,"to":15}],                    "days": "weekday", "maxHours": 2, "note": "2 timer m. p-skive bagud" },
+      { "type": "limited",     "windows": [{"from":9,"to":13}],                    "days": "saturday","maxHours": 2, "note": "2 timer m. p-skive bagud (lørdag)" }
+    ],
+    "svgPreview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><rect width='200' height='200' rx='10' fill='#1A3A8F'/><circle cx='100' cy='100' r='72' fill='#1A3A8F'/><circle cx='100' cy='100' r='72' fill='none' stroke='#CC0000' stroke-width='12'/><line x1='49' y1='49' x2='151' y2='151' stroke='#CC0000' stroke-width='12' stroke-linecap='round'/><line x1='49' y1='151' x2='151' y2='49' stroke='#CC0000' stroke-width='12' stroke-linecap='round'/></svg>"
+  },
+  {
+    "id": "el-ladeplads-betaling",
+    "title": "El-ladeplads – 3 timer / betalingszone",
+    "description": "Elbiler kan lade gratis i 3 timer kl. 8–19. Uden for dette tidsrum er området betalingszone.",
+    "tags": ["el-bil", "tidsbegrænset", "betaling"],
+    "rules": [
+      "Kun for elbiler under opladning",
+      "Gratis parkering i maks. 3 timer kl. 8–19",
+      "Øvrig tid: P-betalingszone gælder"
+    ],
+    "timeRules": [
+      { "type": "ev-only", "windows": [{"from": 8, "to": 19}], "days": "all", "maxHours": 3, "note": "Maks. 3 timer opladning" },
+      { "type": "paid",    "windows": [{"from": 19, "to": 24}, {"from": 0, "to": 8}], "days": "all", "note": "P-betalingszone" }
+    ],
+    "svgPreview": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><rect width='200' height='200' rx='10' fill='#1A3A8F'/><rect x='6' y='6' width='188' height='188' rx='7' fill='none' stroke='white' stroke-width='3'/><text x='72' y='130' font-family='Arial Black,Arial,sans-serif' font-size='100' font-weight='900' fill='white' text-anchor='middle'>P</text><g transform='translate(148,72) scale(1.4)'><rect x='-8' y='-14' width='16' height='20' rx='3' fill='white'/><rect x='-5' y='-20' width='4' height='8' rx='1' fill='white'/><rect x='1' y='-20' width='4' height='8' rx='1' fill='white'/><path d='M0,6 C0,12 8,12 8,18 C8,24 0,24 0,30' fill='none' stroke='white' stroke-width='3' stroke-linecap='round'/></g></svg>"
+  },
+  {
     "id": "parkering-forbudt",
-    "title": "Parkering forbudt",
     "description": "Parkering er forbudt. Standsning er dog tilladt i kortere tid (maks. 3 minutter).",
     "tags": ["forbudt", "alle"],
     "rules": [
