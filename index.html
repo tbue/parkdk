@@ -175,24 +175,31 @@
       <button class="modal-close" id="modal-close" aria-label="Luk">✕</button>
     </div>
     <div class="modal-body">
-      <div class="modal-preview" id="modal-preview"></div>
-      <h3>Regler</h3>
-      <ul class="modal-rules" id="modal-rules-list"></ul>
-      <h3 style="margin-top:12px">Kategorier</h3>
-      <div class="tag-list" style="margin-top:8px" id="modal-tags"></div>
-      <h3 style="margin-top:20px">Næste 24 timer</h3>
-      <div class="tl-nav">
-        <button id="tl-prev" class="tl-nav-btn" disabled>◀ Forrige</button>
-        <span id="tl-date-label" class="tl-date-label">I dag</span>
-        <button id="tl-next" class="tl-nav-btn">Næste ▶</button>
+      <!-- Left: sign SVG -->
+      <div class="modal-left">
+        <div class="modal-preview" id="modal-preview"></div>
       </div>
-      <div id="modal-timeline" class="timeline-wrap"></div>
-      <div class="timeline-legend">
-        <span class="legend-dot free"></span>Fri parkering
-        <span class="legend-dot limited"></span>Tidsbegrænset
-        <span class="legend-dot paid"></span>Betaling kræves
-        <span class="legend-dot ev-only"></span>Kun elbiler
-        <span class="legend-dot forbidden"></span>Forbudt
+      <!-- Right: info -->
+      <div class="modal-right">
+        <h3>Regler</h3>
+        <ul class="modal-rules" id="modal-rules-list"></ul>
+        <h3 style="margin-top:12px">Kategorier</h3>
+        <div class="tag-list" style="margin-top:8px" id="modal-tags"></div>
+        <h3 style="margin-top:20px">Næste 24 timer</h3>
+        <div class="tl-nav">
+          <button id="tl-prev" class="tl-nav-btn" disabled>◀ Forrige</button>
+          <span id="tl-date-label" class="tl-date-label">I dag</span>
+          <button id="tl-next" class="tl-nav-btn">Næste ▶</button>
+        </div>
+        <div id="modal-timeline" class="timeline-wrap"></div>
+        <div class="timeline-legend">
+          <span class="legend-dot free"></span>Fri parkering
+          <span class="legend-dot limited"></span>Tidsbegrænset
+          <span class="legend-dot paid"></span>Betaling kræves
+          <span class="legend-dot ev-only"></span>Kun elbiler
+          <span class="legend-dot no-parking"></span>Parkering forbudt
+          <span class="legend-dot forbidden"></span>Standsning forbudt
+        </div>
       </div>
     </div>
   </div>
