@@ -241,6 +241,102 @@ function renderGrid(signs) {
 const modalOverlay = document.getElementById('modal-overlay');
 const modalClose   = document.getElementById('modal-close');
 
+/* ════════════════════════════════
+   24-TIMERS TIMELINE
+════════════════════════════════ */
+
+/**
+ * Classify a single hour slot for a sign.
+ * Returns: 'free' | 'limited' | 'paid' | 'ev-only' | 'forbidden'
+ *
+ * sign.rules is free text, so we parse sign.tags + common patterns.
+ * For signs from the builder we also get structured data via sign._data.
+ */
+function classifyHour(sign, hour, dayName) {
+  const tags  = sign.tags || [];
+  const rules = (sign.rules || []).join(' ').toLowerCase();
+
+  // Parse restriction window from rules text e.g. "8–18", "8:00–18:00", "8-19"
+  let restrictFrom = null, restrictTo = null;
+  const timeMatch = rules.match(/(\d{1,2})(?::00)?[–\-](\d{1,2})(?::00)?/);
+  if (timeMatch) {
+    restrictFrom = parseInt(timeMatch[1]);
+    restrictTo   = parseInt(timeMatch[2]);
+  }
+
+  const inWindow = restrictFrom !== null
+    ? (hour >= restrictFrom && hour < restrictTo)
+    : true; // no time info → always applies
+
+  // Danish day name → short
+  const DAY_MAP = { 'mandag':'Man','tirsdag':'Tir','onsdag':'Ons','torsdag':'Tor','fredag':'Fre','lørdag':'Lør','søndag':'Søn' };
+  const todayShort = DAY_MAP[dayName.toLowerCase()] || dayName;
+
+  // Check if today is a restricted weekday (parse "mandag–fredag" style from rules)
+  let dayRestricted = true;
+  const dayRangeMatch = rules.match(/(man|tir|ons|tor|fre|lør|søn)[a-z]*[–\-](man|tir|ons|tor|fre|lør|søn)/i);
+  if (dayRangeMatch) {
+    const ORDER = ['Man','Tir','Ons','Tor','Fre','Lør','Søn'];
+    const fromIdx = ORDER.findIndex(d => d.toLowerCase().startsWith(dayRangeMatch[1].toLowerCase()));
+    const toIdx   = ORDER.findIndex(d => d.toLowerCase().startsWith(dayRangeMatch[2].toLowerCase()));
+    const todayIdx = ORDER.indexOf(todayShort);
+    if (todayIdx !== -1 && fromIdx !== -1 && toIdx !== -1) {
+      dayRestricted = todayIdx >= fromIdx && todayIdx <= toIdx;
+    }
+  }
+
+  const active = inWindow && dayRestricted;
+
+  if (tags.includes('forbudt') && active)       return 'forbidden';
+  if (tags.includes('el-bil') && active) {
+    // Check if ALL vehicles forbidden or just non-EV
+    if (rules.includes('kun') || rules.includes('forbeholdt') || rules.includes('kun for'))
+      return 'ev-only';
+    return 'ev-only';
+  }
+  if (rules.includes('betaling') && active)     return 'paid';
+  if (tags.includes('tidsbegrænset') && active) return 'limited';
+  if (tags.includes('beboere') && active)       return 'limited';
+  if (tags.includes('handicap'))                return 'free'; // always OK with card
+  return 'free';
+}
+
+const STATUS_LABEL = {
+  'free':     'Fri parkering',
+  'limited':  'Tidsbegrænset',
+  'paid':     'Betaling',
+  'ev-only':  'Kun elbiler',
+  'forbidden':'Forbudt'
+};
+
+const WEEKDAY_NAMES = ['søndag','mandag','tirsdag','onsdag','torsdag','fredag','lørdag'];
+
+function buildTimeline(sign) {
+  const now  = new Date();
+  const nowH = now.getHours();
+  let html = '<div class="timeline">';
+
+  for (let i = 0; i < 24; i++) {
+    const absHour = (nowH + i) % 24;
+    // Which day is this slot on?
+    const slotDate = new Date(now);
+    slotDate.setHours(absHour, 0, 0, 0);
+    if (absHour < nowH) slotDate.setDate(slotDate.getDate() + 1);
+    const dayName = WEEKDAY_NAMES[slotDate.getDay()];
+
+    const status = classifyHour(sign, absHour, dayName);
+    const isNow  = i === 0;
+    const label  = isNow ? 'Nu' : (absHour === 0 ? '0' : absHour) + '';
+
+    html += `<div class="tl-slot ${status}${isNow ? ' now' : ''}" title="${absHour}:00 – ${STATUS_LABEL[status]}">
+      <div class="tl-bar"></div>
+      <div class="tl-label">${label}</div>
+    </div>`;
+  }
+  html += '</div>';
+  return html;
+}
+
 function openModal(sign) {
   document.getElementById('modal-title').textContent = sign.title;
   document.getElementById('modal-preview').innerHTML = sign.svgPreview;
@@ -248,6 +344,7 @@ function openModal(sign) {
     sign.rules.map(r => `<li>${escHtml(r)}</li>`).join('');
   document.getElementById('modal-tags').innerHTML =
     sign.tags.map(t => `<span class="tag ${t.replace(/[^a-z-]/g,'')}">${escHtml(t)}</span>`).join('');
+  document.getElementById('modal-timeline').innerHTML = buildTimeline(sign);
   modalOverlay.classList.add('open');
   document.body.style.overflow = 'hidden';
 }
