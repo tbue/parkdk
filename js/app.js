@@ -371,24 +371,30 @@ function classifyHour(sign, hour, dayType) {
 }
 
 const WEEKDAY_NAMES = ['søndag','mandag','tirsdag','onsdag','torsdag','fredag','lørdag'];
+const DAY_NAMES_DA  = ['Søndag','Mandag','Tirsdag','Onsdag','Torsdag','Fredag','Lørdag'];
 
-function buildTimeline(sign) {
-  const now  = new Date();
-  const nowH = now.getHours();
+function buildTimeline(sign, offsetDays = 0) {
+  const base = new Date();
+  base.setDate(base.getDate() + offsetDays);
+  // If offsetDays > 0 start from 00:00 that day, else start from current hour
+  const startHour = offsetDays === 0 ? base.getHours() : 0;
+
   let html = '<div class="timeline">';
 
   for (let i = 0; i < 24; i++) {
-    const absHour = (nowH + i) % 24;
-    const slotDate = new Date(now);
+    const absHour = (startHour + i) % 24;
+    const slotDate = new Date(base);
     slotDate.setHours(absHour, 0, 0, 0);
-    if (i > 0 && absHour <= nowH) slotDate.setDate(slotDate.getDate() + 1);
+    if (offsetDays === 0 && i > 0 && absHour <= startHour) slotDate.setDate(slotDate.getDate() + 1);
+
     const dayType = getDayType(slotDate);
     const dayName = WEEKDAY_NAMES[slotDate.getDay()];
 
     const { status, note } = classifyHour(sign, absHour, dayType);
-    const isNow   = i === 0;
+    const isNow   = offsetDays === 0 && i === 0;
     const label   = isNow ? 'Nu' : (absHour === 0 ? '0' : String(absHour));
-    const dayIndicator = (absHour === 0 && i > 0) ? `<div class="tl-midnight">${dayName.slice(0,3)}</div>` : '';
+    const dayIndicator = (absHour === 0 && (i > 0 || offsetDays > 0))
+      ? `<div class="tl-midnight">${dayName.slice(0,3)}</div>` : '';
     const tooltipDayLabel = { weekday: 'Hverdag', saturday: 'Lørdag', sunday: 'Søndag' }[dayType];
     const tooltip = `${absHour}:00 (${tooltipDayLabel}) – ${STATUS_LABEL[status]}${note ? ': ' + note : ''}`;
 
@@ -402,17 +408,48 @@ function buildTimeline(sign) {
   return html;
 }
 
+let _modalSign = null;
+let _timelineOffset = 0;
+
+function renderTimelineSection() {
+  const now = new Date();
+  const target = new Date(now);
+  target.setDate(target.getDate() + _timelineOffset);
+
+  let dateLabel;
+  if (_timelineOffset === 0)      dateLabel = 'I dag';
+  else if (_timelineOffset === 1) dateLabel = 'I morgen';
+  else {
+    const d = target.getDay();
+    dateLabel = `${DAY_NAMES_DA[d]} d. ${target.getDate()}/${target.getMonth()+1}`;
+  }
+
+  document.getElementById('tl-date-label').textContent = dateLabel;
+  document.getElementById('tl-prev').disabled = _timelineOffset <= 0;
+  document.getElementById('modal-timeline').innerHTML = buildTimeline(_modalSign, _timelineOffset);
+}
+
 function openModal(sign) {
+  _modalSign = sign;
+  _timelineOffset = 0;
   document.getElementById('modal-title').textContent = sign.title;
   document.getElementById('modal-preview').innerHTML = sign.svgPreview;
   document.getElementById('modal-rules-list').innerHTML =
     sign.rules.map(r => `<li>${escHtml(r)}</li>`).join('');
   document.getElementById('modal-tags').innerHTML =
     sign.tags.map(t => `<span class="tag ${t.replace(/[^a-z-]/g,'')}">${escHtml(t)}</span>`).join('');
-  document.getElementById('modal-timeline').innerHTML = buildTimeline(sign);
+  renderTimelineSection();
   modalOverlay.classList.add('open');
   document.body.style.overflow = 'hidden';
 }
+
+document.getElementById('tl-prev').addEventListener('click', () => {
+  if (_timelineOffset > 0) { _timelineOffset--; renderTimelineSection(); }
+});
+document.getElementById('tl-next').addEventListener('click', () => {
+  _timelineOffset++;
+  renderTimelineSection();
+});
 
 function closeModal() {
   modalOverlay.classList.remove('open');

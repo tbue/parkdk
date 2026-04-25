@@ -691,3 +691,31 @@ body {
 }
 
 .tl-slot { position: relative; }
+
+.tl-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0 12px;
+}
+
+.tl-nav-btn {
+  background: var(--blue-600, #1A3A8F);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: opacity .15s;
+}
+.tl-nav-btn:disabled { opacity: .35; cursor: default; }
+.tl-nav-btn:not(:disabled):hover { opacity: .85; }
+
+.tl-date-label {
+  flex: 1;
+  text-align: center;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--grey-800, #111);
+}
