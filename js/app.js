@@ -283,54 +283,121 @@ function getFormData() {
   return { type, timeFrom, timeTo, maxVal, maxUnit, forGroup, exceptions, weekdays };
 }
 
+// ── EV plug icon (white, matches Danish road sign style) ──
+function evPlugIcon(x, y, scale = 1) {
+  const s = scale;
+  return `<g transform="translate(${x},${y}) scale(${s})">
+    <!-- plug body -->
+    <rect x="-8" y="-14" width="16" height="20" rx="3" fill="white"/>
+    <!-- prongs -->
+    <rect x="-5" y="-20" width="4" height="8" rx="1" fill="white"/>
+    <rect x="1" y="-20" width="4" height="8" rx="1" fill="white"/>
+    <!-- cable coils -->
+    <path d="M0,6 C0,12 8,12 8,18 C8,24 0,24 0,30 C0,36 8,36 8,42" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  </g>`;
+}
+
+// ── Main sign builder ──
 function buildSVG(d) {
-  const isForbudt   = d.type === 'forbudt';
-  const isEV        = d.type === 'el-ladeplads';
-  const isTid       = d.type === 'tidsbegrænset';
+  const isForbudt  = d.type === 'forbudt';
+  const isEV       = d.type === 'el-ladeplads';
+  const isBeboer   = d.forGroup.includes('beboere');
+  const isHandicap = d.forGroup.includes('handicap');
 
-  const bgColor     = isForbudt ? '#CC0000' : isEV ? '#FF6B00' : '#003E8C';
-  const timeStr     = (d.timeFrom && d.timeTo) ? `${d.timeFrom}–${d.timeTo}` : '';
-  const maxStr      = d.maxVal ? `Maks. ${d.maxVal} ${d.maxUnit}` : '';
-  const daysStr     = d.weekdays.length ? d.weekdays.join('–') : '';
+  // Danish road sign blue: #1A3A8F (main P-sign blue from real signs)
+  const BLUE   = '#1A3A8F';
+  const DARK   = '#0D1F4E';
+  const WHITE  = 'white';
 
-  const forLabels   = { alle: 'Alle', 'el-biler': 'Elbiler', beboere: 'Beboere', handicap: 'Handicap' };
-  const forStr      = d.forGroup.length ? d.forGroup.map(v => forLabels[v] || v).join(', ') : '';
+  const timeStr = (d.timeFrom && d.timeTo) ? `${d.timeFrom}–${d.timeTo}` : '';
+  const maxStr  = d.maxVal ? `${d.maxVal} ${d.maxUnit}` : '';
+  const daysStr = d.weekdays.length && d.weekdays.length < 7 ? d.weekdays.join('–') : '';
 
-  let mainSymbol = '';
+  // ── Width fixed at 200, layout: main sign + undertavle ──
+  const W = 200;
+  const mainH = 200; // square-ish main sign
+
+  // Build undertavle (sub-sign) rows
+  const subRows = [];
+  if (maxStr)   subRows.push(maxStr);
+  if (timeStr)  subRows.push(timeStr);
+  if (daysStr)  subRows.push(daysStr);
+  if (d.exceptions) subRows.push(d.exceptions);
+
+  const subH = subRows.length ? 18 + subRows.length * 22 + 14 : 0;
+  const totalH = mainH + (subH > 0 ? 4 + subH : 0);
+
+  // ── Main sign ──
+  let mainContent = '';
+
   if (isForbudt) {
-    mainSymbol = `
-      <circle cx="100" cy="90" r="60" fill="none" stroke="white" stroke-width="8"/>
-      <line x1="58" y1="48" x2="142" y2="132" stroke="white" stroke-width="8"/>`;
+    // Parkering forbudt: blue circle with red border and single diagonal
+    mainContent = `
+      <!-- Blue circle, red ring, diagonal -->
+      <circle cx="100" cy="100" r="72" fill="${BLUE}"/>
+      <circle cx="100" cy="100" r="72" fill="none" stroke="#CC0000" stroke-width="12"/>
+      <line x1="49" y1="49" x2="151" y2="151" stroke="#CC0000" stroke-width="12" stroke-linecap="round"/>
+    `;
   } else if (isEV) {
-    mainSymbol = `
-      <text x="100" y="82" font-family="Arial,sans-serif" font-size="70" font-weight="900"
-        fill="white" text-anchor="middle">P</text>
-      <text x="100" y="120" font-family="Arial,sans-serif" font-size="28" fill="white" text-anchor="middle">⚡</text>`;
+    // EV sign: blue background, white P left + plug icon right
+    mainContent = `
+      <!-- P symbol, slightly left -->
+      <text x="72" y="130" font-family="Arial Black,Arial,sans-serif" font-size="100" font-weight="900"
+        fill="${WHITE}" text-anchor="middle" dominant-baseline="auto">P</text>
+      <!-- EV plug icon, right side -->
+      ${evPlugIcon(148, 72, 1.4)}
+    `;
+  } else if (isHandicap) {
+    // Handicap: blue P + wheelchair symbol
+    mainContent = `
+      <text x="80" y="130" font-family="Arial Black,Arial,sans-serif" font-size="90" font-weight="900"
+        fill="${WHITE}" text-anchor="middle">P</text>
+      <!-- wheelchair simplified -->
+      <circle cx="148" cy="65" r="10" fill="${WHITE}"/>
+      <path d="M148,75 L148,105 L135,120 M148,105 L162,120 M138,90 L158,90" stroke="${WHITE}" stroke-width="5" fill="none" stroke-linecap="round"/>
+    `;
+  } else if (isBeboer) {
+    // Beboer: blue P + "B" badge
+    mainContent = `
+      <text x="85" y="130" font-family="Arial Black,Arial,sans-serif" font-size="90" font-weight="900"
+        fill="${WHITE}" text-anchor="middle">P</text>
+      <rect x="130" y="50" width="46" height="46" rx="6" fill="${WHITE}"/>
+      <text x="153" y="85" font-family="Arial Black,Arial,sans-serif" font-size="36" font-weight="900"
+        fill="${BLUE}" text-anchor="middle">B</text>
+    `;
   } else {
-    mainSymbol = `
-      <text x="100" y="102" font-family="Arial,sans-serif" font-size="86" font-weight="900"
-        fill="white" text-anchor="middle">P</text>`;
+    // Standard P-skilt
+    mainContent = `
+      <text x="100" y="138" font-family="Arial Black,Arial,sans-serif" font-size="110" font-weight="900"
+        fill="${WHITE}" text-anchor="middle">P</text>
+    `;
   }
 
-  // Info lines below divider
-  const infoLines = [maxStr, forStr, timeStr, daysStr].filter(Boolean);
-  const dividerY  = isForbudt ? 155 : 130;
-  const lineStart = dividerY + 22;
+  // ── Main sign rect with white inner border (authentic Danish style) ──
+  const mainSign = `
+    <rect width="${W}" height="${mainH}" rx="10" fill="${BLUE}"/>
+    <rect x="6" y="6" width="${W-12}" height="${mainH-12}" rx="7" fill="none" stroke="${WHITE}" stroke-width="3"/>
+    ${mainContent}
+  `;
 
-  let infoSVG = '';
-  if (!isForbudt && infoLines.length) {
-    infoSVG += `<line x1="16" y1="${dividerY}" x2="184" y2="${dividerY}" stroke="white" stroke-width="2" opacity="0.4"/>`;
-    infoLines.forEach((line, i) => {
-      infoSVG += `<text x="100" y="${lineStart + i * 18}" font-family="Arial,sans-serif" font-size="13" fill="white" text-anchor="middle">${escHtml(line)}</text>`;
+  // ── Undertavle (sub-sign panels) ──
+  let undertavle = '';
+  if (subRows.length) {
+    const subY = mainH + 4;
+    undertavle = `
+      <rect x="0" y="${subY}" width="${W}" height="${subH}" rx="6" fill="${WHITE}"/>
+      <rect x="3" y="${subY+3}" width="${W-6}" height="${subH-6}" rx="4" fill="none" stroke="${BLUE}" stroke-width="3"/>
+    `;
+    subRows.forEach((row, i) => {
+      const ty = subY + 18 + i * 22 + 8;
+      undertavle += `<text x="100" y="${ty}" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold"
+        fill="#111" text-anchor="middle">${escHtml(row)}</text>`;
     });
   }
 
-  const svgHeight = isForbudt ? 200 : Math.max(200, lineStart + infoLines.length * 18 + 16);
-
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 ${svgHeight}" id="sign-preview-svg">
-  <rect width="200" height="${svgHeight}" rx="12" fill="${bgColor}"/>
-  ${mainSymbol}
-  ${infoSVG}
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${totalH}" id="sign-preview-svg">
+  ${mainSign}
+  ${undertavle}
 </svg>`;
 }
 
