@@ -406,13 +406,13 @@ function buildTimeline(sign, offsetDays = 0, carType = 'normal') {
     if (offsetDays === 0 && i > 0 && absHour <= startHour) slotDate.setDate(slotDate.getDate() + 1);
 
     const dayType = getDayType(slotDate);
-    const dayName = WEEKDAY_NAMES[slotDate.getDay()];
+    const dayShort = dayType === 'saturday' ? 'Lør' : dayType === 'sunday' ? 'Søn' : 'Hverdag';
 
     const { status, note } = classifyHour(sign, absHour, dayType, carType);
     const isNow   = offsetDays === 0 && i === 0;
     const label   = isNow ? 'Nu' : (absHour === 0 ? '0' : String(absHour));
     const dayIndicator = (absHour === 0 && (i > 0 || offsetDays > 0))
-      ? `<div class="tl-midnight">${dayName.slice(0,3)}</div>` : '';
+      ? `<div class="tl-midnight">${dayShort}</div>` : '';
     const tooltipDayLabel = { weekday: 'Hverdag', saturday: 'Lørdag', sunday: 'Søndag' }[dayType];
     const tooltip = `${absHour}:00 (${tooltipDayLabel}) – ${STATUS_LABEL[status]}${note ? ': ' + note : ''}`;
 
@@ -439,8 +439,9 @@ function renderTimelineSection() {
   if (_timelineOffset === 0)      dateLabel = 'I dag';
   else if (_timelineOffset === 1) dateLabel = 'I morgen';
   else {
-    const d = target.getDay();
-    dateLabel = `${DAY_NAMES_DA[d]} d. ${target.getDate()}/${target.getMonth()+1}`;
+    const dt = getDayType(target);
+    const dtLabel = dt === 'saturday' ? 'Lørdag' : dt === 'sunday' ? 'Søndag' : 'Hverdag';
+    dateLabel = `${dtLabel} d. ${target.getDate()}/${target.getMonth()+1}`;
   }
 
   document.getElementById('tl-date-label').textContent = dateLabel;
