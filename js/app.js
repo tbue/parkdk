@@ -319,11 +319,25 @@ const ALL_WEEKDAYS = ['monday','tuesday','wednesday','thursday','friday'];
  *   { text, color, parens } → tekst der skal vises, evt. i parentes (lørdag) eller rød (søndag)
  */
 const DAY_SHORT_DA = { monday:'Man', tuesday:'Tir', wednesday:'Ons', thursday:'Tor', friday:'Fre', saturday:'Lør', sunday:'Søn' };
+// Reverse map: Danish abbreviations → english names (used when days come from HTML form)
+const DA_SHORT_TO_NAME = { Man:'monday', Tir:'tuesday', Ons:'wednesday', Tor:'thursday', Fre:'friday', Lør:'saturday', Søn:'sunday' };
+
+function normalizeDays(days) {
+  if (!days) return null;
+  const arr = Array.isArray(days) ? days : [days];
+  // Translate Danish abbreviations to english if needed
+  return arr.map(d => DA_SHORT_TO_NAME[d] || d);
+}
 
 function formatDaysLabel(days) {
-  if (!days || days === 'all') return null;
-  // Normalize to array
-  const arr = Array.isArray(days) ? days : [days];
+  if (!days) return null;
+  const arr = normalizeDays(days);
+  if (!arr || arr.length === 0) return null;
+  if (arr.includes('all') || arr[0] === 'all') return null;
+
+  // String shorthand (legacy)
+  if (arr.length === 1 && arr[0] === 'weekday') return null;
+
   const sorted = arr.slice().sort((a,b) => DAY_INDEX_NAMES.indexOf(a) - DAY_INDEX_NAMES.indexOf(b));
 
   // All 5 weekdays → ingen dag-tekst
@@ -337,7 +351,6 @@ function formatDaysLabel(days) {
 
   // Mixed specific days
   const text = sorted.map(d => DAY_SHORT_DA[d] || d).join(', ');
-  // Determine color: red if any sunday, normal if only weekdays, parens if contains saturday but no sunday
   const hasSunday = sorted.includes('sunday');
   const hasSaturday = sorted.includes('saturday');
   if (hasSunday) return { text, parens: false, color: 'red' };
@@ -568,17 +581,19 @@ function getFormData() {
   return { type, timeFrom, timeTo, maxVal, maxUnit, forGroup, exceptions, weekdays };
 }
 
-// ── EV plug icon (white, matches Danish road sign style) ──
+// ── EV plug icon (white, Type 2 / CCS style — standard på danske ladestandere) ──
 function evPlugIcon(x, y, scale = 1) {
-  const s = scale;
-  return `<g transform="translate(${x},${y}) scale(${s})">
-    <!-- plug body -->
-    <rect x="-8" y="-14" width="16" height="20" rx="3" fill="white"/>
-    <!-- prongs -->
-    <rect x="-5" y="-20" width="4" height="8" rx="1" fill="white"/>
-    <rect x="1" y="-20" width="4" height="8" rx="1" fill="white"/>
-    <!-- cable coils -->
-    <path d="M0,6 C0,12 8,12 8,18 C8,24 0,24 0,30 C0,36 8,36 8,42" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  return `<g transform="translate(${x},${y}) scale(${scale})">
+    <!-- Plug housing (rounded rectangle) -->
+    <rect x="-14" y="-8" width="28" height="32" rx="6" fill="white"/>
+    <!-- Top flat edge / connector face -->
+    <rect x="-10" y="-14" width="20" height="8" rx="3" fill="white"/>
+    <!-- Three pins: two round top + one bottom center -->
+    <circle cx="-5" cy="-10" r="3" fill="#1A3A8F"/>
+    <circle cx="5" cy="-10" r="3" fill="#1A3A8F"/>
+    <circle cx="0" cy="0" r="3.5" fill="#1A3A8F"/>
+    <!-- Cable out bottom -->
+    <rect x="-3" y="24" width="6" height="14" rx="3" fill="white"/>
   </g>`;
 }
 
@@ -660,13 +675,29 @@ function buildSVG(d) {
         fill="${WHITE}" text-anchor="middle">kr</text>
     `;
   } else if (isHandicap) {
-    // Handicap: blue P + wheelchair symbol
+    // Handicap: P + ISA wheelchair symbol (International Symbol of Access)
     mainContent = `
-      <text x="80" y="130" font-family="Arial Black,Arial,sans-serif" font-size="90" font-weight="900"
+      <text x="78" y="130" font-family="Arial Black,Arial,sans-serif" font-size="90" font-weight="900"
         fill="${WHITE}" text-anchor="middle">P</text>
-      <!-- wheelchair simplified -->
-      <circle cx="148" cy="65" r="10" fill="${WHITE}"/>
-      <path d="M148,75 L148,105 L135,120 M148,105 L162,120 M138,90 L158,90" stroke="${WHITE}" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <!-- ISA wheelchair figure -->
+      <!-- Head -->
+      <circle cx="152" cy="52" r="9" fill="${WHITE}"/>
+      <!-- Body/torso -->
+      <line x1="152" y1="61" x2="152" y2="88" stroke="${WHITE}" stroke-width="6" stroke-linecap="round"/>
+      <!-- Arm forward (pushing) -->
+      <line x1="152" y1="72" x2="168" y2="78" stroke="${WHITE}" stroke-width="5" stroke-linecap="round"/>
+      <!-- Seat -->
+      <line x1="140" y1="88" x2="165" y2="88" stroke="${WHITE}" stroke-width="6" stroke-linecap="round"/>
+      <!-- Upper leg -->
+      <line x1="152" y1="88" x2="152" y2="105" stroke="${WHITE}" stroke-width="6" stroke-linecap="round"/>
+      <!-- Lower leg / footrest -->
+      <line x1="152" y1="105" x2="140" y2="115" stroke="${WHITE}" stroke-width="5" stroke-linecap="round"/>
+      <!-- Wheel (large) -->
+      <circle cx="152" cy="118" r="16" fill="none" stroke="${WHITE}" stroke-width="5"/>
+      <!-- Wheel hub -->
+      <circle cx="152" cy="118" r="3" fill="${WHITE}"/>
+      <!-- Small front wheel -->
+      <circle cx="138" cy="122" r="5" fill="none" stroke="${WHITE}" stroke-width="3.5"/>
     `;
   } else if (isBeboer) {
     // Beboer: blue P + "B" badge
