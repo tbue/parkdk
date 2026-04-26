@@ -867,12 +867,14 @@ function buildSVG(d) {
   `;
 
   // ── Undertavle (sub-sign panels) ──
+  // U-tavler til forbudsskilte (C61/C62) har RØD border — U-tavler til P-skilte har BLÅ border
+  const undertavleBorderColor = (isForbudt || isStandsningForbudt) ? '#CC0000' : BLUE;
   let undertavle = '';
   if (subRows.length) {
     const subY = mainH + 4;
     undertavle = `
       <rect x="0" y="${subY}" width="${W}" height="${subH}" rx="6" fill="${WHITE}"/>
-      <rect x="3" y="${subY+3}" width="${W-6}" height="${subH-6}" rx="4" fill="none" stroke="${BLUE}" stroke-width="3"/>
+      <rect x="3" y="${subY+3}" width="${W-6}" height="${subH-6}" rx="4" fill="none" stroke="${undertavleBorderColor}" stroke-width="3"/>
     `;
     subRows.forEach((row, i) => {
       const ty = subY + 18 + i * 22 + 8;
