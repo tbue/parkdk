@@ -303,10 +303,59 @@ function getDayType(date) {
   return 'weekday';
 }
 
-function ruleApplies(rule, hour, dayType) {
-  // Day match
+// Map JS getDay() (0=Sun) to lowercase day name
+const DAY_INDEX_NAMES = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+function getDayName(date) {
+  return DAY_INDEX_NAMES[date.getDay()];
+}
+
+// All 5 weekday names
+const ALL_WEEKDAYS = ['monday','tuesday','wednesday','thursday','friday'];
+
+/**
+ * Format a `days` value (string or array) into a display label for a sign undertavle.
+ * Returns:
+ *   null                    → gælder alle hverdage, skriv ikke dage på skiltet
+ *   { text, color, parens } → tekst der skal vises, evt. i parentes (lørdag) eller rød (søndag)
+ */
+const DAY_SHORT_DA = { monday:'Man', tuesday:'Tir', wednesday:'Ons', thursday:'Tor', friday:'Fre', saturday:'Lør', sunday:'Søn' };
+
+function formatDaysLabel(days) {
+  if (!days || days === 'all') return null;
+  // Normalize to array
+  const arr = Array.isArray(days) ? days : [days];
+  const sorted = arr.slice().sort((a,b) => DAY_INDEX_NAMES.indexOf(a) - DAY_INDEX_NAMES.indexOf(b));
+
+  // All 5 weekdays → ingen dag-tekst
+  const isAllWeekdays = ALL_WEEKDAYS.every(d => sorted.includes(d)) && !sorted.includes('saturday') && !sorted.includes('sunday');
+  if (isAllWeekdays) return null;
+
+  // Only saturday
+  if (sorted.length === 1 && sorted[0] === 'saturday') return { text: null, parens: true, color: null };
+  // Only sunday
+  if (sorted.length === 1 && sorted[0] === 'sunday') return { text: null, parens: false, color: 'red' };
+
+  // Mixed specific days
+  const text = sorted.map(d => DAY_SHORT_DA[d] || d).join(', ');
+  // Determine color: red if any sunday, normal if only weekdays, parens if contains saturday but no sunday
+  const hasSunday = sorted.includes('sunday');
+  const hasSaturday = sorted.includes('saturday');
+  if (hasSunday) return { text, parens: false, color: 'red' };
+  if (hasSaturday) return { text, parens: true, color: null };
+  return { text, parens: false, color: null };
+}
+
+function ruleApplies(rule, hour, dayType, dayName) {
+  // Day match — supports string ('weekday','saturday','sunday','all') or array of day names
   const ruleDays = rule.days || 'all';
-  if (ruleDays !== 'all' && ruleDays !== dayType) return false;
+  if (Array.isArray(ruleDays)) {
+    // Specific days array: check if today's dayName is in the list
+    // Also treat Saturday/Sunday membership correctly
+    const matchesByName = ruleDays.includes(dayName);
+    if (!matchesByName) return false;
+  } else {
+    if (ruleDays !== 'all' && ruleDays !== dayType) return false;
+  }
 
   // Window match
   const windows = rule.windows;
@@ -319,7 +368,7 @@ function ruleApplies(rule, hour, dayType) {
  * otherwise fall back to tag/text heuristics.
  * carType: 'normal' | 'ev'
  */
-function classifyHour(sign, hour, dayType, carType = 'normal') {
+function classifyHour(sign, hour, dayType, carType = 'normal', dayName = null) {
   // ── Derive base status from tags (used when no rule matches) ──
   // This is the "always-on" restriction of the sign.
   // e.g. a beboer sign is always 'limited' even outside time windows.
@@ -339,7 +388,7 @@ function classifyHour(sign, hour, dayType, carType = 'normal') {
     let best     = baseStatus;
     let bestNote = baseNote;
     for (const rule of sign.timeRules) {
-      if (ruleApplies(rule, hour, dayType)) {
+      if (ruleApplies(rule, hour, dayType, dayName)) {
         if (PRIORITY.indexOf(rule.type) < PRIORITY.indexOf(best)) {
           best     = rule.type;
           bestNote = rule.note || '';
@@ -406,9 +455,10 @@ function buildTimeline(sign, offsetDays = 0, carType = 'normal') {
     if (offsetDays === 0 && i > 0 && absHour <= startHour) slotDate.setDate(slotDate.getDate() + 1);
 
     const dayType = getDayType(slotDate);
+    const dayName = getDayName(slotDate);
     const dayShort = dayType === 'saturday' ? 'Lør' : dayType === 'sunday' ? 'Søn' : 'Hverdag';
 
-    const { status, note } = classifyHour(sign, absHour, dayType, carType);
+    const { status, note } = classifyHour(sign, absHour, dayType, carType, dayName);
     const isNow   = offsetDays === 0 && i === 0;
     const label   = isNow ? 'Nu' : (absHour === 0 ? '0' : String(absHour));
     const dayIndicator = (absHour === 0 && (i > 0 || offsetDays > 0))
@@ -549,18 +599,31 @@ function buildSVG(d) {
 
   const timeStr = (d.timeFrom && d.timeTo) ? `${d.timeFrom}–${d.timeTo}` : '';
   const maxStr  = d.maxVal ? `${d.maxVal} ${d.maxUnit}` : '';
-  const daysStr = d.weekdays.length && d.weekdays.length < 7 ? d.weekdays.join('–') : '';
+  // Use formatDaysLabel to decide if/how to show days
+  const daysLabel = d.weekdays && d.weekdays.length ? formatDaysLabel(d.weekdays) : undefined;
+  // daysLabel === null → alle hverdage, ingen tekst
+  // daysLabel === undefined → ingen dage valgt
+  // daysLabel.text / .parens / .color → specific days
 
   // ── Width fixed at 200, layout: main sign + undertavle ──
   const W = 200;
   const mainH = 200; // square-ish main sign
 
-  // Build undertavle (sub-sign) rows
+  // Build undertavle (sub-sign) rows — each row: { text, color }
   const subRows = [];
-  if (maxStr)   subRows.push(maxStr);
-  if (timeStr)  subRows.push(timeStr);
-  if (daysStr)  subRows.push(daysStr);
-  if (d.exceptions) subRows.push(d.exceptions);
+  if (maxStr)   subRows.push({ text: maxStr, color: null });
+  if (timeStr) {
+    // If we have a daysLabel, wrap time accordingly
+    if (daysLabel && daysLabel !== null) {
+      let t = timeStr;
+      if (daysLabel.parens) t = `(${t})`;
+      subRows.push({ text: t, color: daysLabel.color });
+      if (daysLabel.text) subRows.push({ text: daysLabel.text, color: daysLabel.color });
+    } else {
+      subRows.push({ text: timeStr, color: null });
+    }
+  }
+  if (d.exceptions) subRows.push({ text: d.exceptions, color: null });
 
   const subH = subRows.length ? 18 + subRows.length * 22 + 14 : 0;
   const totalH = mainH + (subH > 0 ? 4 + subH : 0);
@@ -639,8 +702,9 @@ function buildSVG(d) {
     `;
     subRows.forEach((row, i) => {
       const ty = subY + 18 + i * 22 + 8;
+      const fillColor = row.color || '#111';
       undertavle += `<text x="100" y="${ty}" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold"
-        fill="#111" text-anchor="middle">${escHtml(row)}</text>`;
+        fill="${fillColor}" text-anchor="middle">${escHtml(row.text)}</text>`;
     });
   }
 
