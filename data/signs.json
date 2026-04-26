@@ -356,6 +356,86 @@
     ]
   },
   {
+    "id": "pile-undertavle-frem",
+    "title": "Parkering fremad ↑ – maks. 2 timer (hverdag 8–17)",
+    "description": "Pile-undertavle (UE 33.x): Parkering tilladt fremad i maks. 2 timer på hverdage 8–17. Lørdag 9–13 i parentes.",
+    "tags": ["tidsbegrænset", "alle", "hverdage"],
+    "baseStatus": "free",
+    "baseNote": "Fri parkering",
+    "arrow": "up",
+    "rules": [
+      "Fremad ↑: Maks. 2 timer parkering på hverdage kl. 8–17",
+      "Fremad ↑: Maks. 2 timer parkering lørdag kl. 9–13",
+      "Uden for tidsrummet: fri parkering"
+    ],
+    "timeRules": [
+      {
+        "type": "limited",
+        "windows": [{"from": 8, "to": 17}],
+        "days": "weekday",
+        "maxHours": 2,
+        "note": "Maks. 2 timer med p-skive"
+      },
+      {
+        "type": "limited",
+        "windows": [{"from": 9, "to": 13}],
+        "days": "saturday",
+        "maxHours": 2,
+        "note": "Maks. 2 timer med p-skive (lørdag)"
+      }
+    ]
+  },
+  {
+    "id": "pile-undertavle-tilbage",
+    "title": "Parkering bagud ↓ – maks. 1 time (hverdag 8–18, søn rød)",
+    "description": "Pile-undertavle (UE 33.x): Parkering tilladt bagud i maks. 1 time på hverdage 8–18. Søndag 10–14 vises i rødt.",
+    "tags": ["tidsbegrænset", "alle"],
+    "baseStatus": "free",
+    "baseNote": "Fri parkering",
+    "arrow": "down",
+    "rules": [
+      "Bagud ↓: Maks. 1 time parkering på hverdage kl. 8–18",
+      "Bagud ↓: Maks. 1 time parkering søndag kl. 10–14 (rød tekst)"
+    ],
+    "timeRules": [
+      {
+        "type": "limited",
+        "windows": [{"from": 8, "to": 18}],
+        "days": "weekday",
+        "maxHours": 1,
+        "note": "Maks. 1 time med p-skive"
+      },
+      {
+        "type": "limited",
+        "windows": [{"from": 10, "to": 14}],
+        "days": "sunday",
+        "maxHours": 1,
+        "note": "Maks. 1 time (søndag)"
+      }
+    ]
+  },
+  {
+    "id": "pile-undertavle-hoejre",
+    "title": "Parkering til højre → (hverdag 8–18)",
+    "description": "Pile-undertavle (UE 33.x): Parkering tilladt til højre for skiltet på hverdage 8–18.",
+    "tags": ["tidsbegrænset", "alle", "hverdage"],
+    "baseStatus": "free",
+    "baseNote": "Fri parkering",
+    "arrow": "right",
+    "rules": [
+      "Til højre →: Parkering tilladt på hverdage kl. 8–18",
+      "Uden for tidsrummet: fri parkering"
+    ],
+    "timeRules": [
+      {
+        "type": "limited",
+        "windows": [{"from": 8, "to": 18}],
+        "days": "weekday",
+        "note": "Parkering tilladt"
+      }
+    ]
+  },
+  {
     "id": "p-specifikke-dage",
     "title": "Parkering – Maks. 1 time (man+tor 8-16)",
     "description": "Parkering tilladt maks. 1 time på mandag og torsdag kl. 8-16. P-skive skal anvendes.",

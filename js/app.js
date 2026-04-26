@@ -717,11 +717,52 @@ function signToSVG(sign) {
     <rect x="6" y="6" width="${W-12}" height="${mainH-12}" rx="7" fill="none" stroke="${WHITE}" stroke-width="3"/>
     ${mainContent}`;
 
-  const subH = subRows.length ? 18 + subRows.length * 22 + 14 : 0;
-  const totalH = mainH + (subH > 0 ? 4 + subH : 0);
+  // ── Pile-undertavle (UE 33.x) eller normal undertavle ──
+  const arrow = sign.arrow; // 'up' | 'down' | 'left' | 'right' | undefined
 
   let undertavle = '';
-  if (subRows.length) {
+  let totalH;
+
+  if (arrow && subRows.length) {
+    // Pile-undertavle: arrow | P | tekst-rækker
+    const minSubH = 80;
+    const subH = Math.max(minSubH, 18 + subRows.length * 22 + 14);
+    totalH = mainH + 4 + subH;
+    const subY = mainH + 4;
+    const mid = subY + subH / 2;
+
+    // Arrow polygons (absolute SVG coords)
+    const arrowSVG = {
+      up:    `<polygon points="25,${subY+10} 40,${subY+34} 32,${subY+34} 32,${subY+subH-10} 18,${subY+subH-10} 18,${subY+34} 10,${subY+34}" fill="#111"/>`,
+      down:  `<polygon points="25,${subY+subH-10} 40,${subY+subH-34} 32,${subY+subH-34} 32,${subY+10} 18,${subY+10} 18,${subY+subH-34} 10,${subY+subH-34}" fill="#111"/>`,
+      right: `<polygon points="10,${mid} 34,${subY+10} 34,${mid-7} 46,${mid-7} 46,${mid+7} 34,${mid+7} 34,${subY+subH-10}" fill="#111"/>`,
+      left:  `<polygon points="40,${mid} 16,${subY+10} 16,${mid-7} 4,${mid-7} 4,${mid+7} 16,${mid+7} 16,${subY+subH-10}" fill="#111"/>`,
+    };
+
+    undertavle = `
+      <rect x="0" y="${subY}" width="${W}" height="${subH}" rx="6" fill="${WHITE}"/>
+      <rect x="3" y="${subY+3}" width="${W-6}" height="${subH-6}" rx="4" fill="none" stroke="${borderColor}" stroke-width="3"/>
+      <!-- Pile-zone: 0–50 -->
+      ${arrowSVG[arrow] || ''}
+      <!-- P-zone: 50–100 -->
+      <line x1="50" y1="${subY+6}" x2="50" y2="${subY+subH-6}" stroke="${borderColor}" stroke-width="1.5" opacity="0.4"/>
+      <text x="75" y="${mid+12}" font-family="Arial Black,Arial,sans-serif" font-size="32" font-weight="900"
+        fill="${borderColor}" text-anchor="middle">P</text>
+      <!-- Tekst-zone: 100–200 -->
+      <line x1="100" y1="${subY+6}" x2="100" y2="${subY+subH-6}" stroke="${borderColor}" stroke-width="1.5" opacity="0.4"/>`;
+
+    const textStartY = subY + subH / 2 - (subRows.length - 1) * 11;
+    subRows.forEach((row, i) => {
+      const ty = textStartY + i * 22;
+      const fill = row.color || '#111';
+      undertavle += `<text x="150" y="${ty}" font-family="Arial,Helvetica,sans-serif" font-size="15" font-weight="bold"
+        fill="${fill}" text-anchor="middle">${escHtml(row.text)}</text>`;
+    });
+
+  } else if (subRows.length) {
+    // Normal tekst-undertavle
+    const subH = 18 + subRows.length * 22 + 14;
+    totalH = mainH + 4 + subH;
     const subY = mainH + 4;
     undertavle = `
       <rect x="0" y="${subY}" width="${W}" height="${subH}" rx="6" fill="${WHITE}"/>
@@ -732,6 +773,8 @@ function signToSVG(sign) {
       undertavle += `<text x="100" y="${ty}" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold"
         fill="${fill}" text-anchor="middle">${escHtml(row.text)}</text>`;
     });
+  } else {
+    totalH = mainH;
   }
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${totalH}">
