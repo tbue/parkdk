@@ -643,23 +643,29 @@ body {
 /* ════════════════════════════════
    24-TIMERS TIMELINE
 ════════════════════════════════ */
-/* Car type toggle */
+/* Car type toggle — segmented pill */
 .car-type-toggle {
-  display: flex;
-  gap: 8px;
-  margin: 10px 0 12px;
+  display: inline-flex;
+  border: 2px solid var(--blue);
+  border-radius: 24px;
+  overflow: hidden;
+  margin: 10px 0 14px;
+  width: 100%;
 }
 .car-btn {
   flex: 1;
-  padding: 7px 12px;
-  border: 2px solid var(--blue);
+  padding: 8px 14px;
+  border: none;
   background: transparent;
   color: var(--blue);
-  border-radius: 20px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition: background 0.15s, color 0.15s;
+  line-height: 1.2;
+}
+.car-btn:first-child {
+  border-right: 2px solid var(--blue);
 }
 .car-btn.active {
   background: var(--blue);
