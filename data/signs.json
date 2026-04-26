@@ -354,5 +354,37 @@
         "note": "2 timer m. p-skive bagud (lørdag)"
       }
     ]
+  },
+  {
+    "id": "p-specifikke-dage",
+    "title": "Parkering – Maks. 1 time (man+tor 8-16)",
+    "description": "Parkering tilladt maks. 1 time på mandag og torsdag kl. 8-16. P-skive skal anvendes.",
+    "tags": [
+      "tidsbegrænset",
+      "alle"
+    ],
+    "baseStatus": "free",
+    "baseNote": "Fri parkering",
+    "rules": [
+      "Maksimal parkeringstid: 1 time med p-skive",
+      "Gælder mandag og torsdag kl. 8-16"
+    ],
+    "timeRules": [
+      {
+        "type": "limited",
+        "windows": [
+          {
+            "from": 8,
+            "to": 16
+          }
+        ],
+        "days": [
+          "monday",
+          "thursday"
+        ],
+        "maxHours": 1,
+        "note": "Maks. 1 time med p-skive"
+      }
+    ]
   }
 ]

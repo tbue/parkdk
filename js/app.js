@@ -818,29 +818,28 @@ function buildSVG(d) {
         fill="${WHITE}" text-anchor="middle">kr</text>
     `;
   } else if (isHandicap) {
-    // Handicap: P + ISA wheelchair symbol (International Symbol of Access)
+    // Handicap: P + moderne dynamisk ISA-kørestolsfigur (fremoverlænet, aktiv stil)
     mainContent = `
       <text x="78" y="130" font-family="Arial Black,Arial,sans-serif" font-size="90" font-weight="900"
         fill="${WHITE}" text-anchor="middle">P</text>
-      <!-- ISA wheelchair figure -->
-      <!-- Head -->
-      <circle cx="152" cy="52" r="9" fill="${WHITE}"/>
-      <!-- Body/torso -->
-      <line x1="152" y1="61" x2="152" y2="88" stroke="${WHITE}" stroke-width="6" stroke-linecap="round"/>
-      <!-- Arm forward (pushing) -->
-      <line x1="152" y1="72" x2="168" y2="78" stroke="${WHITE}" stroke-width="5" stroke-linecap="round"/>
-      <!-- Seat -->
-      <line x1="140" y1="88" x2="165" y2="88" stroke="${WHITE}" stroke-width="6" stroke-linecap="round"/>
-      <!-- Upper leg -->
-      <line x1="152" y1="88" x2="152" y2="105" stroke="${WHITE}" stroke-width="6" stroke-linecap="round"/>
-      <!-- Lower leg / footrest -->
-      <line x1="152" y1="105" x2="140" y2="115" stroke="${WHITE}" stroke-width="5" stroke-linecap="round"/>
-      <!-- Wheel (large) -->
-      <circle cx="152" cy="118" r="16" fill="none" stroke="${WHITE}" stroke-width="5"/>
-      <!-- Wheel hub -->
-      <circle cx="152" cy="118" r="3" fill="${WHITE}"/>
-      <!-- Small front wheel -->
-      <circle cx="138" cy="122" r="5" fill="none" stroke="${WHITE}" stroke-width="3.5"/>
+      <!-- Hoved — let fremad -->
+      <circle cx="156" cy="48" r="9" fill="${WHITE}"/>
+      <!-- Overkrop fremoverlænet -->
+      <line x1="154" y1="57" x2="148" y2="80" stroke="${WHITE}" stroke-width="6" stroke-linecap="round"/>
+      <!-- Arm strakt frem (aktiv stil) -->
+      <line x1="152" y1="65" x2="168" y2="60" stroke="${WHITE}" stroke-width="4.5" stroke-linecap="round"/>
+      <!-- Sæde vandret -->
+      <line x1="138" y1="80" x2="162" y2="80" stroke="${WHITE}" stroke-width="6" stroke-linecap="round"/>
+      <!-- Lår fremad -->
+      <line x1="148" y1="80" x2="143" y2="98" stroke="${WHITE}" stroke-width="5.5" stroke-linecap="round"/>
+      <!-- Fødder på fodstøtte -->
+      <line x1="143" y1="98" x2="133" y2="104" stroke="${WHITE}" stroke-width="4.5" stroke-linecap="round"/>
+      <!-- Stort baghjul -->
+      <circle cx="153" cy="112" r="18" fill="none" stroke="${WHITE}" stroke-width="5"/>
+      <!-- Hjulnav -->
+      <circle cx="153" cy="112" r="3" fill="${WHITE}"/>
+      <!-- Lille forhjul -->
+      <circle cx="134" cy="108" r="5.5" fill="none" stroke="${WHITE}" stroke-width="3.5"/>
     `;
   } else if (isBeboer) {
     // Beboer: blue P + "B" badge
