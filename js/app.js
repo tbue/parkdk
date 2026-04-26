@@ -216,7 +216,7 @@ function renderGrid(signs) {
   }
   grid.innerHTML = signs.map(sign => `
     <article class="sign-card" data-id="${sign.id}" tabindex="0" role="button" aria-label="${sign.title}">
-      <div class="sign-card-preview">${sign.svgPreview}</div>
+      <div class="sign-card-preview">${signToSVG(sign)}</div>
       <div class="sign-card-body">
         <h3>${escHtml(sign.title)}</h3>
         <p>${escHtml(sign.description)}</p>
@@ -519,7 +519,7 @@ function openModal(sign) {
   document.getElementById('car-normal').classList.add('active');
   document.getElementById('car-ev').classList.remove('active');
   document.getElementById('modal-title').textContent = sign.title;
-  document.getElementById('modal-preview').innerHTML = sign.svgPreview;
+  document.getElementById('modal-preview').innerHTML = signToSVG(sign);
   document.getElementById('modal-rules-list').innerHTML =
     sign.rules.map(r => `<li>${escHtml(r)}</li>`).join('');
   document.getElementById('modal-tags').innerHTML =
@@ -595,6 +595,149 @@ function evPlugIcon(x, y, scale = 1) {
     <!-- Cable out bottom -->
     <rect x="-3" y="24" width="6" height="14" rx="3" fill="white"/>
   </g>`;
+}
+
+/**
+ * Convert a signs.json sign entry to an SVG using buildSVG.
+ * Derives display params from timeRules + signType.
+ */
+function signToSVG(sign) {
+  const tags = sign.tags || [];
+  const rules = sign.timeRules || [];
+
+  // Determine sign type
+  let type = sign.signType || 'tilladt';
+  if (!sign.signType) {
+    if (sign.baseStatus === 'forbidden' || tags.includes('standsning-forbudt')) type = 'standsning-forbudt';
+    else if (sign.baseStatus === 'no-parking' || tags.includes('forbudt')) type = 'forbudt';
+    else if (tags.includes('el-bil') && tags.includes('betaling')) type = 'el-ladeplads-betaling';
+    else if (tags.includes('el-bil')) type = 'el-ladeplads';
+    else if (tags.includes('betaling')) type = 'betaling';
+    else if (tags.includes('handicap')) type = 'handicap';
+    else if (tags.includes('beboere')) type = 'beboer';
+    else type = 'tilladt';
+  }
+
+  // Build undertavle rows from timeRules — group by days
+  // Each unique (days, windows) combination becomes a set of subRows
+  const subRows = [];
+  const seenGroups = new Map();
+
+  for (const rule of rules) {
+    // Build time string
+    const wins = rule.windows || [];
+    const timeStr = wins.length
+      ? wins.map(w => `${w.from}–${w.to}`).join(' og ')
+      : '';
+    const maxStr = rule.maxHours ? `${rule.maxHours} timer` : '';
+
+    // Combine max + time
+    const combined = [maxStr, timeStr].filter(Boolean).join('  ');
+    if (!combined) continue; // no time info to show
+
+    // Get day display
+    const dl = rule.days ? formatDaysLabel(Array.isArray(rule.days) ? rule.days : [rule.days]) : null;
+
+    // Build display strings
+    let displayTime = combined;
+    let displayColor = null;
+
+    if (dl) {
+      if (dl.parens) displayTime = `(${combined})`;
+      if (dl.color) displayColor = dl.color;
+    }
+
+    subRows.push({ text: displayTime, color: displayColor });
+    if (dl && dl.text) subRows.push({ text: dl.text, color: displayColor });
+  }
+
+  // Build SVG directly (mirrors buildSVG logic but without form data)
+  const BLUE  = '#1A3A8F';
+  const WHITE = 'white';
+  const W = 200;
+  const mainH = 200;
+
+  const isForbudt = type === 'forbudt';
+  const isStandsningForbudt = type === 'standsning-forbudt';
+  const isEV = type === 'el-ladeplads' || type === 'el-ladeplads-betaling';
+  const isBeboer = type === 'beboer';
+  const isHandicap = type === 'handicap';
+  const isBetaling = type === 'betaling';
+
+  let mainContent = '';
+  if (isForbudt || isStandsningForbudt) {
+    const diag2 = isStandsningForbudt
+      ? `<line x1="149" y1="51" x2="51" y2="149" stroke="#CC0000" stroke-width="12" stroke-linecap="round"/>`
+      : '';
+    mainContent = `
+      <circle cx="100" cy="100" r="72" fill="${BLUE}"/>
+      <circle cx="100" cy="100" r="72" fill="none" stroke="#CC0000" stroke-width="12"/>
+      <line x1="51" y1="51" x2="149" y2="149" stroke="#CC0000" stroke-width="12" stroke-linecap="round"/>
+      ${diag2}`;
+  } else if (isEV) {
+    mainContent = `
+      <text x="72" y="130" font-family="Arial Black,Arial,sans-serif" font-size="100" font-weight="900"
+        fill="${WHITE}" text-anchor="middle">P</text>
+      ${evPlugIcon(148, 100, 1.4)}`;
+  } else if (isBetaling) {
+    mainContent = `
+      <text x="75" y="130" font-family="Arial Black,Arial,sans-serif" font-size="90" font-weight="900"
+        fill="${WHITE}" text-anchor="middle">P</text>
+      <text x="158" y="85" font-family="Arial Black,Arial,sans-serif" font-size="44" font-weight="900"
+        fill="${WHITE}" text-anchor="middle">kr</text>`;
+  } else if (isHandicap) {
+    mainContent = `
+      <text x="78" y="130" font-family="Arial Black,Arial,sans-serif" font-size="90" font-weight="900"
+        fill="${WHITE}" text-anchor="middle">P</text>
+      <circle cx="152" cy="52" r="9" fill="${WHITE}"/>
+      <line x1="152" y1="61" x2="152" y2="88" stroke="${WHITE}" stroke-width="6" stroke-linecap="round"/>
+      <line x1="152" y1="72" x2="168" y2="78" stroke="${WHITE}" stroke-width="5" stroke-linecap="round"/>
+      <line x1="140" y1="88" x2="165" y2="88" stroke="${WHITE}" stroke-width="6" stroke-linecap="round"/>
+      <line x1="152" y1="88" x2="152" y2="105" stroke="${WHITE}" stroke-width="6" stroke-linecap="round"/>
+      <line x1="152" y1="105" x2="140" y2="115" stroke="${WHITE}" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="152" cy="118" r="16" fill="none" stroke="${WHITE}" stroke-width="5"/>
+      <circle cx="152" cy="118" r="3" fill="${WHITE}"/>
+      <circle cx="138" cy="122" r="5" fill="none" stroke="${WHITE}" stroke-width="3.5"/>`;
+  } else if (isBeboer) {
+    mainContent = `
+      <text x="85" y="130" font-family="Arial Black,Arial,sans-serif" font-size="90" font-weight="900"
+        fill="${WHITE}" text-anchor="middle">P</text>
+      <rect x="130" y="50" width="46" height="46" rx="6" fill="${WHITE}"/>
+      <text x="153" y="85" font-family="Arial Black,Arial,sans-serif" font-size="36" font-weight="900"
+        fill="${BLUE}" text-anchor="middle">B</text>`;
+  } else {
+    mainContent = `
+      <text x="100" y="138" font-family="Arial Black,Arial,sans-serif" font-size="110" font-weight="900"
+        fill="${WHITE}" text-anchor="middle">P</text>`;
+  }
+
+  const borderColor = (isForbudt || isStandsningForbudt) ? '#CC0000' : BLUE;
+  const mainSign = `
+    <rect width="${W}" height="${mainH}" rx="10" fill="${BLUE}"/>
+    <rect x="6" y="6" width="${W-12}" height="${mainH-12}" rx="7" fill="none" stroke="${WHITE}" stroke-width="3"/>
+    ${mainContent}`;
+
+  const subH = subRows.length ? 18 + subRows.length * 22 + 14 : 0;
+  const totalH = mainH + (subH > 0 ? 4 + subH : 0);
+
+  let undertavle = '';
+  if (subRows.length) {
+    const subY = mainH + 4;
+    undertavle = `
+      <rect x="0" y="${subY}" width="${W}" height="${subH}" rx="6" fill="${WHITE}"/>
+      <rect x="3" y="${subY+3}" width="${W-6}" height="${subH-6}" rx="4" fill="none" stroke="${borderColor}" stroke-width="3"/>`;
+    subRows.forEach((row, i) => {
+      const ty = subY + 18 + i * 22 + 8;
+      const fill = row.color || '#111';
+      undertavle += `<text x="100" y="${ty}" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="bold"
+        fill="${fill}" text-anchor="middle">${escHtml(row.text)}</text>`;
+    });
+  }
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${totalH}">
+  ${mainSign}
+  ${undertavle}
+</svg>`;
 }
 
 // ── Main sign builder ──
